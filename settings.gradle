@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        // 国内镜像优先（加速插件下载），官方源兜底。
+        // 阿里云 gradle-plugin 仓库是 Gradle 插件门户的镜像。
+        maven { url = 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven { url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        gradlePluginPortal()
+        // NeoGradle 插件与 NeoForge 构件（无国内镜像，直连官方源）
+        maven { url = 'https://maven.neoforged.net/releases' }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}

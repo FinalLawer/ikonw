@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "iknow:multi_tool",
+    "#c:tools/tools",
+    "#c:tools/mining_tool",
+    "#c:tools/shear"
+  ]
+}
+
