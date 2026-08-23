@@ -134,22 +134,15 @@ public final class FlightHandler {
         } else {
             resetReach(player);
         }
-        // 物品拾取/磁吸模式：
-        // 磁吸类（磁吸 / 磁吸进 AE）只要背包有工具就生效；
-        // 破坏类（破坏入包 / 破坏入 AE）仍只对手持生效（保持原逻辑不变）。
+        // 物品磁吸模式（磁吸 / 磁吸进 AE）：只要背包有工具就生效；
+        // 破坏类（破坏入包 / 破坏入 AE）由 PickupEvents.onBlockBreak 路由，不做磁吸，
+        // 避免把玩家扔出的掉落物也被吸走。
         if (player instanceof ServerPlayer serverPlayer) {
             ItemStack magnetTool = findMultiTool(player);
             if (magnetTool != null) {
                 PickupMode mmode = MultiToolItem.pickupMode(magnetTool);
                 if (mmode == PickupMode.MAGNET || mmode == PickupMode.MAGNET_AE) {
                     handlePickup(serverPlayer, magnetTool, mmode);
-                }
-            }
-            ItemStack held = heldMultiTool(player);
-            if (held != null) {
-                PickupMode hmode = MultiToolItem.pickupMode(held);
-                if (hmode == PickupMode.BREAK_INVENTORY || hmode == PickupMode.BREAK_AE) {
-                    handlePickup(serverPlayer, held, hmode);
                 }
             }
         }
@@ -187,19 +180,9 @@ public final class FlightHandler {
         }
     }
 
-    /** 手持的多功能工具（主手优先，否则副手） */
-    private static ItemStack heldMultiTool(Player player) {
-        ItemStack main = player.getMainHandItem();
-        if (main.getItem() instanceof MultiToolItem) {
-            return main;
-        }
-        ItemStack off = player.getOffhandItem();
-        return off.getItem() instanceof MultiToolItem ? off : null;
-    }
-
     /** 磁吸 + 物品路由：把附近掉落吸到脚边停下（非乱飞），AE 模式靠近时插入 ME 存储 */
     private static void handlePickup(ServerPlayer player, ItemStack tool, PickupMode mode) {
-        boolean toAe = mode == PickupMode.MAGNET_AE || mode == PickupMode.BREAK_AE;
+        boolean toAe = mode == PickupMode.MAGNET_AE;
         int radius = 7; // 吸取范围 7 格
         List<ItemEntity> items = player.level().getEntitiesOfClass(ItemEntity.class,
                 player.getBoundingBox().inflate(radius), e -> e.isAlive());
