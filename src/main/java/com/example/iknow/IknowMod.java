@@ -72,7 +72,7 @@ public class IknowMod {
             .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
 
     // 澶氬姛鑳藉伐鍏凤細闆嗘枾澶淬€侀晲瀛愩€侀攧澶淬€佸壀鍒€銆侀摬瀛愪簬涓€韬紝鎸変綇 R 鎵撳紑杞洏閫夋嫨鍔熻兘锛堝彲鍗曢€夋垨澶氶€夛級
-        public static final DeferredItem<MultiToolItem> MULTI_TOOL = ITEMS.register("multi_tool",
+        public static final DeferredItem<MultiToolItem> MULTI_TOOL = ITEMS.register("iknow_tool",
             () -> new MultiToolItem(new Item.Properties()
                     .component(ModDataComponents.TOOL_MODES, ToolMode.DEFAULT_MASK)
                     .component(ModDataComponents.ENCHANT_MODE, MultiToolItem.ENCHANT_OFF)

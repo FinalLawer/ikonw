@@ -2,7 +2,7 @@
   "itemGroup.iknow": "iknow",
   "block.iknow.example_block": "Example Block",
   "item.iknow.example_item": "Example Item",
-  "item.iknow.multi_tool": "iknow_tool",
+  "item.iknow.iknow_tool": "iknow_tool",
   "key.iknow.open_wheel": "Open Mode Wheel",
   "key.categories.iknow": "iknow",
   "message.iknow.need_tool": "Hold the iknow_tool to open the wheel!",

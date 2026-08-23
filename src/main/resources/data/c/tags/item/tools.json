@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "iknow:multi_tool",
+    "iknow:iknow_tool",
     "#c:tools/tools",
     "#c:tools/mining_tool",
     "#c:tools/shear"
