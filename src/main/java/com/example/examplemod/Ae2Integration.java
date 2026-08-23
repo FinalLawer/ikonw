@@ -30,6 +30,9 @@ public final class Ae2Integration {
 
     /** 按住 shift 右键无线访问点时绑定（成功返回 true） */
     public static boolean tryBind(ItemStack stack, Level level, BlockEntity blockEntity) {
+        if (!isAe2Loaded()) {
+            return false;
+        }
         if (!(blockEntity instanceof IWirelessAccessPoint)) {
             return false;
         }
@@ -39,6 +42,9 @@ public final class Ae2Integration {
 
     /** 取绑定网格（跨维度），未绑定/不可达返回 null */
     public static IGrid getLinkedGrid(ItemStack stack, ServerLevel level) {
+        if (!isAe2Loaded()) {
+            return null;
+        }
         GlobalPos gp = stack.get(ModDataComponents.LINKED_POS.get());
         if (gp == null) {
             return null;
@@ -56,6 +62,9 @@ public final class Ae2Integration {
 
     /** 把物品插入绑定网络的 ME 存储，返回实际插入数量（0 = 未绑定/未插入） */
     public static long insertIntoGrid(ItemStack tool, ServerPlayer player, ItemStack toInsert) {
+        if (!isAe2Loaded()) {
+            return 0;
+        }
         if (!(player.level() instanceof ServerLevel serverLevel)) {
             return 0;
         }
