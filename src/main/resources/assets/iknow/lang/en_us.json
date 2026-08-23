@@ -6,8 +6,8 @@
   "key.iknow.open_wheel": "Open Mode Wheel",
   "key.categories.iknow": "Example Mod",
   "message.iknow.need_tool": "Hold the Multi-Tool to open the wheel!",
-  "wheel.iknow.title": "Multi-Tool 路 Select Mode",
-  "wheel.iknow.hint": "Click a sector to select 路 Click center to switch Single/Multi 路 Release R to close",
+  "wheel.iknow.title": "Multi-Tool · Select Mode",
+  "wheel.iknow.hint": "Click a sector to select · Click center to switch Single/Multi · Release R to close",
   "wheel.iknow.tool_title": "Tool Modes",
   "wheel.iknow.enchant_title": "Enchant Modes",
   "wheel.iknow.enchant_hint": "Enchant mode is single-select only",
@@ -56,9 +56,9 @@
   "label.iknow.preview": "3x3 Chunk Style Preview",
   "label.iknow.style": "Chunk Border Style",
   "button.iknow.style_odd": "Odd",
-  "button.iknow.style_odd_sel": "鉁?Odd",
+  "button.iknow.style_odd_sel": "✓ Odd",
   "button.iknow.style_even": "Even",
-  "button.iknow.style_even_sel": "鉁?Even",
+  "button.iknow.style_even_sel": "✓ Even",
   "label.iknow.size": "Size (chunks): ",
   "button.iknow.solid_off": "Solid Fill: OFF",
   "button.iknow.solid_on": "Solid Fill: ON",
@@ -80,4 +80,3 @@
   "message.iknow.clean_warn_30": "Items will be cleared in 30 seconds!",
   "message.iknow.clean_done": "Items cleared"
 }
-
