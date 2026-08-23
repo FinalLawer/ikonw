@@ -1,10 +1,10 @@
 {
-  "itemGroup.iknow": "Example Mod Tab",
+  "itemGroup.iknow": "iknow",
   "block.iknow.example_block": "Example Block",
   "item.iknow.example_item": "Example Item",
   "item.iknow.multi_tool": "Multi-Tool",
   "key.iknow.open_wheel": "Open Mode Wheel",
-  "key.categories.iknow": "Example Mod",
+  "key.categories.iknow": "iknow",
   "message.iknow.need_tool": "Hold the Multi-Tool to open the wheel!",
   "wheel.iknow.title": "Multi-Tool · Select Mode",
   "wheel.iknow.hint": "Click a sector to select · Click center to switch Single/Multi · Release R to close",

@@ -115,9 +115,6 @@ public class IknowMod {
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
-        // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
-
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -133,18 +130,6 @@ public class IknowMod {
         LOGGER.info("{}{}", Config.MAGIC_NUMBER_INTRODUCTION.get(), Config.MAGIC_NUMBER.getAsInt());
 
         Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
-    }
-
-    // Add the example block item to the building blocks tab
-        private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(EXAMPLE_BLOCK_ITEM);
-            event.accept(BASE_PLACER_ITEM);
-            event.accept(CLEAN_WORLD_ITEM);
-        }
-        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
-            event.accept(MULTI_TOOL);
-        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
