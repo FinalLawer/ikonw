@@ -140,7 +140,7 @@ public final class FlightHandler {
         if (player instanceof ServerPlayer serverPlayer) {
             ItemStack magnetTool = findMultiTool(player);
             if (magnetTool != null) {
-                PickupMode mmode = MultiToolItem.pickupMode(magnetTool);
+                PickupMode mmode = MultiToolItem.magnetMode(magnetTool);
                 if (mmode == PickupMode.MAGNET || mmode == PickupMode.MAGNET_AE) {
                     handlePickup(serverPlayer, magnetTool, mmode);
                 }

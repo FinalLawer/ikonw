@@ -100,8 +100,46 @@ public class MultiToolItem extends Item {
     }
 
     /** 璇诲彇璇ョ墿鍝佹爤鐨勬嬀鍙栨ā寮忥紙榛樿鍏抽棴锛?*/
+    public static PickupMode magnetMode(ItemStack stack) {
+        int v = stack.getOrDefault(ModDataComponents.PICKUP_MODE.get(), 0);
+        int m = v & 0x0F;
+        return switch (m) {
+            case 1 -> PickupMode.MAGNET;
+            case 2 -> PickupMode.MAGNET_AE;
+            default -> PickupMode.NONE;
+        };
+    }
+
+    /** 读取该物品的破坏轴模式（NONE / BREAK_INVENTORY / BREAK_AE），默认关闭 */
+    public static PickupMode breakMode(ItemStack stack) {
+        int v = stack.getOrDefault(ModDataComponents.PICKUP_MODE.get(), 0);
+        int b = (v >> 4) & 0x0F;
+        return switch (b) {
+            case 1 -> PickupMode.BREAK_INVENTORY;
+            case 2 -> PickupMode.BREAK_AE;
+            default -> PickupMode.NONE;
+        };
+    }
+
+    /** 写入磁吸轴 + 破坏轴（两个独立选项，可同时启用） */
+    public static void setPickupModes(ItemStack stack, PickupMode magnet, PickupMode brk) {
+        int magVal = switch (magnet) {
+            case MAGNET -> 1;
+            case MAGNET_AE -> 2;
+            default -> 0;
+        };
+        int brkVal = switch (brk) {
+            case BREAK_INVENTORY -> 1;
+            case BREAK_AE -> 2;
+            default -> 0;
+        };
+        stack.set(ModDataComponents.PICKUP_MODE.get(), magVal | (brkVal << 4));
+    }
+
+    /** 兼容读取：优先磁吸轴，其次破坏轴（无则关闭） */
     public static PickupMode pickupMode(ItemStack stack) {
-        return PickupMode.byOrdinal(stack.getOrDefault(ModDataComponents.PICKUP_MODE.get(), PickupMode.DEFAULT));
+        PickupMode magnet = magnetMode(stack);
+        return magnet != PickupMode.NONE ? magnet : breakMode(stack);
     }
 
     // ============ 鎸栨帢鐩稿叧锛堟墍鏈夋柟鍧椾竴寰嬫寜婊戝潡閫熷害锛屾棤鎸栨帢鎯╃綒锛?============

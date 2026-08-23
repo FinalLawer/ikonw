@@ -81,7 +81,7 @@ public final class PickupEvents {
         if (tool == null) {
             return;
         }
-        PickupMode mode = MultiToolItem.pickupMode(tool);
+        PickupMode mode = MultiToolItem.breakMode(tool);
         if (mode != PickupMode.BREAK_INVENTORY && mode != PickupMode.BREAK_AE) {
             return;
         }

@@ -202,21 +202,26 @@ public class ModeWheelScreen extends Screen {
         fillSector(guiGraphics, ex, cy, 0, inner - 6, 0.0, Math.PI * 2, 0xC0181828);
         guiGraphics.drawCenteredString(this.font, enchName(enchMode), ex, cy - 4, 0xFFFFFFFF);
 
-        PickupMode currentPickup = currentPickupMode();
+        PickupMode curMagnet = currentMagnetMode();
+        PickupMode curBreak = currentBreakMode();
         boolean[] pickupSel = new boolean[PICKUP_MODES.length];
         ItemStack[] pickupIcons = new ItemStack[PICKUP_MODES.length];
         Component[] pickupNames = new Component[PICKUP_MODES.length];
         for (int i = 0; i < PICKUP_MODES.length; i++) {
-            pickupSel[i] = currentPickup == PICKUP_MODES[i];
-            pickupIcons[i] = pickupIcon(PICKUP_MODES[i]);
-            pickupNames[i] = PICKUP_MODES[i].displayName();
+            PickupMode pm = PICKUP_MODES[i];
+            boolean sel = switch (pm) {
+                case MAGNET, MAGNET_AE -> pm == curMagnet;
+                case BREAK_INVENTORY, BREAK_AE -> pm == curBreak;
+                default -> false;
+            };
+            pickupSel[i] = sel;
+            pickupIcons[i] = pickupIcon(pm);
+            pickupNames[i] = pm.displayName();
         }
         drawWheel(guiGraphics, px, cy, (int) (inner * scale), (int) (radius * scale),
                 pickupSel, hoveredPickupSector, pickupIcons, pickupNames, PICKUP_COLORS);
         fillSector(guiGraphics, px, cy, 0, inner - 6, 0.0, Math.PI * 2, 0xC0181828);
-        guiGraphics.drawCenteredString(this.font,
-                currentPickup == PickupMode.NONE ? Component.translatable("wheel.iknow.none") : currentPickup.displayName(),
-                px, cy - 4, 0xFFFFFFFF);
+        guiGraphics.drawCenteredString(this.font, currentPickupLabel(curMagnet, curBreak), px, cy - 4, 0xFFFFFFFF);
 
         guiGraphics.drawCenteredString(this.font, currentStatusComponent(), this.width / 2, this.height - 18, 0xFFDDDDDD);
 
@@ -301,11 +306,11 @@ public class ModeWheelScreen extends Screen {
             if (pDist >= inner) {
                 int idx = sectorAt(px, cy, PICKUP_MODES.length, mouseX, mouseY);
                 if (idx >= 0) {
-                    setPickupMode(PICKUP_MODES[idx]);
+                    togglePickupSector(PICKUP_MODES[idx]);
                     return true;
                 }
             } else {
-                setPickupMode(null);
+                clearPickupModes();
                 return true;
             }
         }
@@ -442,7 +447,7 @@ public class ModeWheelScreen extends Screen {
                 MultiToolItem.enchantMode(stack),
                 MultiToolItem.miningSpeed(stack),
                 MultiToolItem.flightSpeed(stack),
-                MultiToolItem.pickupMode(stack).ordinal(),
+                stack.getOrDefault(ModDataComponents.PICKUP_MODE.get(), 0),
                 flags,
                 MultiToolItem.blockReach(stack),
                 MultiToolItem.attackReach(stack)));
@@ -528,19 +533,49 @@ public class ModeWheelScreen extends Screen {
         return stack != null ? MultiToolItem.enchantMode(stack) : MultiToolItem.ENCHANT_OFF;
     }
 
-    private PickupMode currentPickupMode() {
+    private PickupMode currentMagnetMode() {
         ItemStack stack = heldStack();
-        return stack != null ? MultiToolItem.pickupMode(stack) : PickupMode.NONE;
+        return stack != null ? MultiToolItem.magnetMode(stack) : PickupMode.NONE;
     }
 
-    private void setPickupMode(PickupMode mode) {
+    private PickupMode currentBreakMode() {
+        ItemStack stack = heldStack();
+        return stack != null ? MultiToolItem.breakMode(stack) : PickupMode.NONE;
+    }
+
+    private Component currentPickupLabel(PickupMode magnet, PickupMode brk) {
+        if (magnet == PickupMode.NONE && brk == PickupMode.NONE) {
+            return Component.translatable("wheel.iknow.none");
+        }
+        String mName = magnet != PickupMode.NONE ? magnet.displayName().getString() : "";
+        String bName = brk != PickupMode.NONE ? brk.displayName().getString() : "";
+        String join = (magnet != PickupMode.NONE && brk != PickupMode.NONE) ? " + " : "";
+        return Component.literal(mName + join + bName);
+    }
+
+    private void togglePickupSector(PickupMode mode) {
         ItemStack stack = heldStack();
         if (stack == null) {
             return;
         }
-        PickupMode current = currentPickupMode();
-        int ord = (mode != null && current != mode) ? mode.ordinal() : PickupMode.NONE.ordinal();
-        stack.set(ModDataComponents.PICKUP_MODE.get(), ord);
+        PickupMode mag = currentMagnetMode();
+        PickupMode brk = currentBreakMode();
+        if (mode == PickupMode.MAGNET || mode == PickupMode.MAGNET_AE) {
+            mag = (mag == mode) ? PickupMode.NONE : mode;
+        } else if (mode == PickupMode.BREAK_INVENTORY || mode == PickupMode.BREAK_AE) {
+            brk = (brk == mode) ? PickupMode.NONE : mode;
+        }
+        MultiToolItem.setPickupModes(stack, mag, brk);
+        sendUpdate(stack);
+        playClickSound();
+    }
+
+    private void clearPickupModes() {
+        ItemStack stack = heldStack();
+        if (stack == null) {
+            return;
+        }
+        MultiToolItem.setPickupModes(stack, PickupMode.NONE, PickupMode.NONE);
         sendUpdate(stack);
         playClickSound();
     }
