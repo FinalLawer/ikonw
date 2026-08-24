@@ -1,34 +1,57 @@
-# iknow —— MC 1.21.1 / NeoForge 21.1.248 模组项目
+# iknow —— 「我知道」
 
-基于官方 MDK（NeoGradle 版，`net.neoforged.gradle.userdev` 7.1.38）搭建，
-已配置国内镜像加速下载。完整说明见 `ModDev/README.md`。
+> I Know What You Want ｜ 一款面向 **Minecraft 1.21.1 / NeoForge 21.1.248** 的全能辅助模组。
 
-## 环境要求
+`iknow` 提供一把多功能工具和多块实用方块，把挖矿、采集、清场、无限产资源等常用需求合并到极简操作里。所有物品都在**创造模式物品栏的 iknow 页**中获取。
 
-- JDK 21（已在 `gradle.properties` 中指向本机 `C:\Program Files\Java\jdk-21`）
-- 无需预装 Gradle（使用项目内 `gradlew` 包装器，发行版从腾讯镜像下载）
+---
 
-## 常用命令（在本目录下执行）
+## 主要功能
 
-| 命令 | 作用 |
-|---|---|
-| `gradlew build` | 构建模组，产物在 `build/libs/iknow-1.0.0.jar` |
-| `gradlew runClient` | 启动开发环境客户端 |
-| `gradlew runServer` | 启动开发环境服务端（需先在 `run/server/eula.txt` 中同意 EULA） |
-| `gradlew runData` | 运行数据生成器，输出到 `src/generated/resources` |
-| `gradlew clean` | 清理构建产物 |
+### 🔧 多功能工具 `iknow_tool`
 
-## 修改模组信息
+一把集多种用途于一身的工具，**按住 R** 呼出模式转盘即可切换：
 
-编辑 `gradle.properties` 中的 `mod_id`、`mod_name`、`mod_version` 等，
-并同步修改：
+- **模式**：斧 / 镐 / 锄 / 剪刀 / 锹
+- **伤害**：21e（攻击力直接顶满）
+- **攻速**：3.2（约为钻石剑的 2 倍）
+- **挖矿 / 飞行速度**可调
+- **触达距离**：方块触达、攻击触达单独可调
+- **附魔模式**：精准采集 / 时运 / 关闭
+- **拾取模式**：关闭 / 普通磁吸 / 磁吸进 AE 网络 / 破坏进背包 / 破坏进 AE
+- **辅助**：飞行、无惯性、夜视
 
-1. 主类 `src/main/java/com/example/iknow/IknowMod.java` 中的 `MODID` 常量
-2. 包名（`com.example.iknow` → 你的 `mod_group_id`）
-3. 语言文件目录名（`assets/iknow` → `assets/<新modid>`）
+### 🧱 三个无限源方块
 
-## 首次构建提示
+主动向**所有 6 面**输出，且**自身就是存储无限量的容器**（可直接被管道/玩家无限抽取）：
 
-首次 `gradlew build` 会下载 NeoForge 与 Minecraft 并进行反编译，
-耗时较长属正常现象。NeoForge/Minecraft 部分来自国外服务器，
-如遇卡顿可稍后重试或使用代理。
+| 方块 | 输出 | 说明 |
+|---|---|---|
+| **无限原石** `infinite_stone` | 物品，每 tick 21e 原石 | 常用于无限建筑/合成材料 |
+| **无限熔岩** `infinite_lava` | 流体，每 tick 极大量熔岩 | 无限岩浆源 |
+| **无限水** `infinite_water` | 流体，每 tick 极大量水 | 无限水源 |
+
+- 贴近一个箱子 / 流体储罐即可被瞬间填满。
+- 贴图为「边框 + 对应物品」样式：原石块 / 岩浆桶 / 水桶。
+
+### 🧹 `你想要干净的世界` `clean_world`
+
+右键打开界面，**立即清理掉落物**或**定时自动清理**（可设秒数）。
+
+### 🏗️ `你想要整洁的地板` `base_placer`
+
+右键一键铺设一片整齐的平台地面，可自定义边框/内芯颜色、平台样式（奇数网格/偶数网格）、大小、实心与否。
+
+### ⚡（需 AE2）无限物品输出器 `infinite_item_outputer`
+
+读取 **ExtendedAE 无限元件**并持续输出其代表的物品（元件不被消耗），仅在你安装 AE2 时才会注册。
+
+---
+
+## 运行环境
+
+- **Minecraft**：1.21.1
+- **NeoForge**：21.1.248
+- **Java**：21
+
+> 无限物品输出器依赖 AE2（`ae2`）与 ExtendedAE，未安装时不注册；其余功能全部独立可用。
