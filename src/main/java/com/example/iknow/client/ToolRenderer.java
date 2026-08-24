@@ -39,35 +39,45 @@ public class ToolRenderer extends BlockEntityWithoutLevelRenderer {
     }
 
     private static void drawStaff(VertexConsumer vc, PoseStack.Pose p, int overlay) {
-        // ---- 柄（八棱渐细圆柱）----
-        float hb = -0.5f, ht = 0.15f, rb = 0.055f, rt = 0.04f;
-        int dark = color(60, 62, 66, 255);
+        int N = 8;
+        // ---- 柄（深色，较短的八棱柱）----
+        float hb = -0.5f, ht = -0.06f, rb = 0.05f, rt = 0.045f;
+        int dark = color(58, 60, 64, 255);
         for (int i = 0; i < N; i++) {
             float[] a = ring(i, hb, rb), b = ring((i + 1) % N, hb, rb),
                     c = ring((i + 1) % N, ht, rt), d = ring(i, ht, rt);
             addQuad(vc, p, a, b, c, d, dark, overlay);
         }
-        // ---- 护环（青）----
-        float g0 = 0.15f, g1 = 0.2f, gr = 0.072f;
-        int cyan = color(44, 208, 222, 255);
+        // ---- 柄上两道发光能量环 ----
+        int ringCyan = color(80, 226, 240, 255);
+        for (int ri = 0; ri < 2; ri++) {
+            float r0 = -0.40f + ri * 0.16f, r1 = r0 + 0.03f, rr = 0.055f;
+            for (int i = 0; i < N; i++) {
+                float[] a = ring(i, r0, rr), b = ring((i + 1) % N, r0, rr),
+                        c = ring((i + 1) % N, r1, rr), d = ring(i, r1, rr);
+                addQuad(vc, p, a, b, c, d, ringCyan, overlay);
+            }
+        }
+        // ---- 护手（青）----
+        float g0 = -0.06f, g1 = 0.03f, gr = 0.08f;
+        int cyan = color(50, 210, 224, 255);
         for (int i = 0; i < N; i++) {
             float[] a = ring(i, g0, gr), b = ring((i + 1) % N, g0, gr),
                     c = ring((i + 1) % N, g1, gr), d = ring(i, g1, gr);
             addQuad(vc, p, a, b, c, d, cyan, overlay);
         }
-        // ---- 能量水晶头（下锥 青 → 上锥 亮青）----
-        float cBase = 0.2f, cWaist = 0.3f, cApexY = 0.5f, rBase = 0.075f, rWaist = 0.1f;
-        int glow = color(120, 228, 240, 255);
+        // ---- 能量水晶头（大而亮：下锥 青 → 上锥 亮青 + 尖端）----
+        float cBase = 0.03f, cWaist = 0.25f, cApex = 0.5f, rBase = 0.09f, rWaist = 0.14f;
+        int glow = color(90, 222, 240, 255);
         int bright = color(225, 255, 255, 255);
         for (int i = 0; i < N; i++) {
             float[] a = ring(i, cBase, rBase), b = ring((i + 1) % N, cBase, rBase),
                     c = ring((i + 1) % N, cWaist, rWaist), d = ring(i, cWaist, rWaist);
             addQuad(vc, p, a, b, c, d, glow, overlay);
         }
-        float[] apex = { 0f, cApexY, 0f };
         for (int i = 0; i < N; i++) {
             float[] a = ring(i, cWaist, rWaist), b = ring((i + 1) % N, cWaist, rWaist);
-            addTri(vc, p, a, b, apex, bright, overlay);
+            addTri(vc, p, a, b, new float[] { 0f, cApex, 0f }, bright, overlay);
         }
     }
 
