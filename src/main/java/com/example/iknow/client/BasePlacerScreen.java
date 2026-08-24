@@ -2,6 +2,7 @@ package com.example.iknow.client;
 
 import com.example.iknow.BaseBuildHandler;
 import com.example.iknow.network.BasePlacerStartPayload;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
@@ -44,6 +45,13 @@ public class BasePlacerScreen extends Screen {
         super(Component.translatable("title.iknow.base_placer"));
         this.pos = pos;
         this.running = running;
+    }
+
+    @Override
+    public void resize(Minecraft mc, int width, int height) {
+        super.resize(mc, width, height);
+        // 缩放窗口时 MC 不重跑 init()，这里手动重建控件，使其跟随新的 width/height 布局
+        this.rebuildWidgets();
     }
 
     private int rowX() {

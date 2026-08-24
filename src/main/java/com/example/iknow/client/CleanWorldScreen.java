@@ -45,6 +45,13 @@ public class CleanWorldScreen extends Screen {
     }
 
     @Override
+    public void resize(Minecraft mc, int width, int height) {
+        super.resize(mc, width, height);
+        // 缩放窗口时 MC 不重跑 init()，这里手动重建控件，使其跟随新的 width/height 布局
+        this.rebuildWidgets();
+    }
+
+    @Override
     protected void init() {
         int midX = this.width / 2;
         this.clearNowButton = Button.builder(Component.translatable("button.iknow.clean_now"), b -> setConfirm(true))
