@@ -32,13 +32,13 @@ public class ToolRenderer extends BlockEntityWithoutLevelRenderer {
         pose.pushPose();
         // 根据视角调整：让权杖在物品栏/手里呈舒适 3D 角度
         if (ctx == ItemDisplayContext.GUI || ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.FIXED) {
-            pose.scale(0.5f, 0.5f, 0.5f);
-            pose.translate(0.0f, -0.55f, 0.0f);
-            pose.mulPose(Axis.XP.rotationDegrees(25));
-            pose.mulPose(Axis.YP.rotationDegrees(-40));
+            pose.scale(0.6f, 0.6f, 0.6f);
+            pose.translate(0.0f, 0.0f, 0.0f);
+            pose.mulPose(Axis.XP.rotationDegrees(20));
+            pose.mulPose(Axis.YP.rotationDegrees(-45));
         } else {
-            pose.scale(0.9f, 0.9f, 0.9f);
-            pose.translate(0.0f, -0.5f, 0.0f);
+            pose.scale(0.75f, 0.75f, 0.75f);
+            pose.translate(0.0f, 0.35f, 0.0f); // 手握在手柄处，水晶朝上
         }
         PoseStack.Pose poseEntry = pose.last();
         VertexConsumer vc = buffers.getBuffer(RenderType.entityTranslucentEmissive(WHITE));
