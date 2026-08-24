@@ -271,7 +271,7 @@ public class IknowToolItem extends Item {
         return ItemAttributeModifiers.builder()
                 .add(Attributes.ATTACK_DAMAGE,
                         // 鍩虹鏀诲嚮 1.0 + 65 = 66 鐐逛激瀹?
-        new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, 65.0, AttributeModifier.Operation.ADD_VALUE),
+        new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, Integer.MAX_VALUE - 1.0, AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.MAINHAND)
                 .add(Attributes.ATTACK_SPEED,
                         // 4.0 - 0.8 = 3.2 鏀婚€?= 閽荤煶鍓?1.6) 鐨?2 鍊?

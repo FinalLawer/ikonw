@@ -36,6 +36,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.block.BasePlacerBlock;
 import com.example.iknow.block.CleanWorldBlock;
+import com.example.iknow.block.InfinityOutputterBlock;
+import com.example.iknow.block.InfiniteSourceBlock;
 import com.example.iknow.network.ModNetwork;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
@@ -67,6 +69,38 @@ public class IknowMod {
             () -> new CleanWorldBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(2.0F)));
     public static final DeferredItem<BlockItem> CLEAN_WORLD_ITEM = ITEMS.registerSimpleBlockItem("clean_world", CLEAN_WORLD);
 
+    // 娓愭棤闄愬師浠惰緭鍑哄櫒锛氭棤闄愮煶鍙戝簲锛坆locket 鏃犻檺铏借兘锛� 妫嫙闅愬己锛� 鑰佺湅闃熻緭鍑哄暐?
+    // 仅在 AE2 已加载时注册（无 AE2 不注册该物品，保持 mod 独立运行）
+    public static final DeferredBlock<InfinityOutputterBlock> INFINITE_ITEM_OUTPUTTER;
+    public static final DeferredItem<BlockItem> INFINITE_ITEM_OUTPUTTER_ITEM;
+
+    static {
+        if (net.neoforged.fml.ModList.get().isLoaded("ae2")) {
+            INFINITE_ITEM_OUTPUTTER = BLOCKS.register("infinite_item_outputter",
+                () -> new InfinityOutputterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_CYAN).strength(2.0F)));
+            INFINITE_ITEM_OUTPUTTER_ITEM = ITEMS.registerSimpleBlockItem("infinite_item_outputter", INFINITE_ITEM_OUTPUTTER);
+        } else {
+            INFINITE_ITEM_OUTPUTTER = null;
+            INFINITE_ITEM_OUTPUTTER_ITEM = null;
+        }
+    }
+
+    // 3 个无限源方块：原石（物品）、熔岩（流体）、水（流体）——主动向 6 面输出，且自身是存储无限量的容器
+    public static final DeferredBlock<InfiniteSourceBlock> INFINITE_STONE = BLOCKS.register("infinite_stone",
+            () -> new InfiniteSourceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(2.0F),
+                    () -> ModBlockEntities.INFINITE_ITEM_SOURCE.get()));
+    public static final DeferredItem<BlockItem> INFINITE_STONE_ITEM = ITEMS.registerSimpleBlockItem("infinite_stone", INFINITE_STONE);
+
+    public static final DeferredBlock<InfiniteSourceBlock> INFINITE_LAVA = BLOCKS.register("infinite_lava",
+            () -> new InfiniteSourceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.FIRE).strength(2.0F),
+                    () -> ModBlockEntities.INFINITE_FLUID_SOURCE.get()));
+    public static final DeferredItem<BlockItem> INFINITE_LAVA_ITEM = ITEMS.registerSimpleBlockItem("infinite_lava", INFINITE_LAVA);
+
+    public static final DeferredBlock<InfiniteSourceBlock> INFINITE_WATER = BLOCKS.register("infinite_water",
+            () -> new InfiniteSourceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WATER).strength(2.0F),
+                    () -> ModBlockEntities.INFINITE_FLUID_SOURCE.get()));
+    public static final DeferredItem<BlockItem> INFINITE_WATER_ITEM = ITEMS.registerSimpleBlockItem("infinite_water", INFINITE_WATER);
+
     // Creates a new food item with the id "iknow:example_id", nutrition 1 and saturation 2
         public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
@@ -91,6 +125,12 @@ public class IknowMod {
         output.accept(IKNOW_TOOL.get());// Add the multi tool to the mod's own tab
                 output.accept(BASE_PLACER_ITEM.get());// Add the base placer block to the mod's own tab
         output.accept(CLEAN_WORLD_ITEM.get());// Add the clean world block to the mod's own tab
+                if (INFINITE_ITEM_OUTPUTTER_ITEM != null) {
+                    output.accept(INFINITE_ITEM_OUTPUTTER_ITEM.get());// Add the infinite item outputter (AE2 only)
+                }
+                output.accept(INFINITE_STONE_ITEM.get());// Add the infinite stone (cobblestone source)
+                output.accept(INFINITE_LAVA_ITEM.get());// Add the infinite lava source
+                output.accept(INFINITE_WATER_ITEM.get());// Add the infinite water source
             }).build());
 
     // The constructor for the mod class is the first code that is run when your mod is loaded.
@@ -105,10 +145,17 @@ public class IknowMod {
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+        // Register block entity types
+        ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        // Register menu types
+        ModMenuTypes.MENU_TYPES.register(modEventBus);
 
         // Register data components and network payloads
         ModDataComponents.DATA_COMPONENTS.register(modEventBus);
         modEventBus.addListener(ModNetwork::register);
+
+        // 方块实体能力：注册 AE2 网格节点主机能力，使线缆能发现本机器并连接
+        modEventBus.addListener(this::registerCapabilities);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (IknowMod) to respond directly to events.
@@ -119,10 +166,26 @@ public class IknowMod {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
+    /** 方块实体能力注册：AE2 网格主机 + 无限源方块（可抽取物品/流体） */
+    public void registerCapabilities(net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) {
+        if (ModBlockEntities.INFINITE_OUTPUTTER != null) {
+            event.registerBlockEntity(appeng.api.AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                    ModBlockEntities.INFINITE_OUTPUTTER.get(),
+                    (be, context) -> (appeng.api.networking.IInWorldGridNodeHost) be);
+        }
+        // 无限物品源（原石）：可无限抽取物品的能力
+        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
+                ModBlockEntities.INFINITE_ITEM_SOURCE.get(),
+                (be, context) -> be.getInfiniteHandler());
+        // 无限流体源（熔岩/水）：可无限抽取流体的能力
+        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
+                ModBlockEntities.INFINITE_FLUID_SOURCE.get(),
+                (be, context) -> be.getInfiniteHandler());
+    }
+
     private void commonSetup(FMLCommonSetupEvent event) {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
-
         if (Config.LOG_DIRT_BLOCK.getAsBoolean()) {
             LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
         }

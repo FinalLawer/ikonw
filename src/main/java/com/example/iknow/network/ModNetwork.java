@@ -109,6 +109,21 @@ public final class ModNetwork {
                         CleanWorldHandler.setPaused(sp, payload.paused());
                     }
                 }));
+        // 鏃犻檺鍘熶欢杈撳嚭鍣細鍒囨崲杈撳嚭闈�
+        registrar.playToServer(InfinityOutputterActionPayload.TYPE, InfinityOutputterActionPayload.STREAM_CODEC, (payload, context) ->
+                context.enqueueWork(() -> {
+                    if (context.player() instanceof ServerPlayer sp && sp.containerMenu instanceof com.example.iknow.client.InfinityOutputterMenu menu) {
+                        com.example.iknow.block.InfinityOutputterBlockEntity be = menu.getHost();
+                        if (be != null && payload.action() == InfinityOutputterActionPayload.CYCLE_FACING) {
+                            be.cycleOutputFacing();
+                        }
+                    }
+                }));
+    }
+
+    /** 客户端发送无限原件输出器动作（切输出面）到服务端 */
+    public static void sendInfinityOutputterAction(int action) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(new InfinityOutputterActionPayload(action));
     }
 
     private static ItemStack heldIknowTool(Player player) {

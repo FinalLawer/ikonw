@@ -64,6 +64,11 @@
   "button.iknow.solid_on": "Solid Fill: ON",
   "message.iknow.select_color": "Please select border or interior color",
   "block.iknow.clean_world": "You want a clean world",
+  "block.iknow.infinite_item_outputter": "Infinite Item Outputter",
+  "button.iknow.outputter_start": "Start",
+  "button.iknow.outputter_pause": "Pause",
+  "button.iknow.outputter_face": "Output Face",
+  "label.iknow.outputter_energy": "Energy: ",
   "title.iknow.clean_world": "You want a clean world",
   "button.iknow.clean_now": "Clear Items",
   "button.iknow.confirm_time": "Confirm Time",
@@ -78,5 +83,8 @@
   "label.iknow.countdown": "Countdown ",
   "dialog.iknow.confirm": "Do you know what you're doing?",
   "message.iknow.clean_warn_30": "Items will be cleared in 30 seconds!",
-  "message.iknow.clean_done": "Items cleared"
+  "message.iknow.clean_done": "Items cleared",
+  "block.iknow.infinite_stone": "Infinite Cobblestone",
+  "block.iknow.infinite_lava": "Infinite Lava",
+  "block.iknow.infinite_water": "Infinite Water"
 }

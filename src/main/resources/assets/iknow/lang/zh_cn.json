@@ -64,6 +64,11 @@
   "button.iknow.solid_on": "实心铺设：开",
   "message.iknow.select_color": "请选择边框或者内部",
   "block.iknow.clean_world": "你想要干净的世界",
+  "block.iknow.infinite_item_outputter": "无限原件输出器",
+  "button.iknow.outputter_start": "启动",
+  "button.iknow.outputter_pause": "暂停",
+  "button.iknow.outputter_face": "输出面",
+  "label.iknow.outputter_energy": "能量: ",
   "title.iknow.clean_world": "你想要干净的世界",
   "button.iknow.clean_now": "清理掉落物",
   "button.iknow.confirm_time": "确认时间",
@@ -78,5 +83,8 @@
   "label.iknow.countdown": "倒计时 ",
   "dialog.iknow.confirm": "你知道你在干什么吗？",
   "message.iknow.clean_warn_30": "将在30秒后清理掉落物！",
-  "message.iknow.clean_done": "已清理掉落物"
+  "message.iknow.clean_done": "已清理掉落物",
+  "block.iknow.infinite_stone": "无限原石",
+  "block.iknow.infinite_lava": "无限熔岩",
+  "block.iknow.infinite_water": "无限水"
 }
