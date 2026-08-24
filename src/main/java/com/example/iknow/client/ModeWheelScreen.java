@@ -128,14 +128,27 @@ public class ModeWheelScreen extends Screen {
     }
 
     // ==================== 动态布局 ====================
-        private int wheelR() {
-        int spacing = rowSpacing();
-        return Math.min(WHEEL_RADIUS_MAX, Math.max(36, spacing / 2 - 6));
-    }
-
-    private int rowSpacing() {
+        private int rowSpacing() {
         int avail = this.width - ROW_LEFT - ROW_RIGHT_MARGIN;
         return Math.max(88, avail / 3);
+    }
+
+    /** 根据可用间隔缩放整个轮盘（中心/内圈/外圈同比例），保证窄窗口下环形仍有厚度、仍可点击 */
+    private float wheelScale() {
+        int spacing = rowSpacing();
+        return Math.max(0.42F, Math.min(1.0F, (spacing - 6) / (2.0F * WHEEL_RADIUS_MAX)));
+    }
+
+    private int outerR() {
+        return (int) (WHEEL_RADIUS_MAX * wheelScale());
+    }
+
+    private int innerR() {
+        return (int) (WHEEL_INNER * wheelScale());
+    }
+
+    private int centerR() {
+        return (int) (CENTER_RADIUS * wheelScale());
     }
 
     private int toolX() {
@@ -163,8 +176,8 @@ public class ModeWheelScreen extends Screen {
         int tx = toolX();
         int ex = enchX();
         int px = pickupX();
-        int radius = wheelR();
-        int inner = WHEEL_INNER;
+        int radius = outerR();
+        int inner = innerR();
 
         float scale = Math.min(1.0F, (this.tickCount + partialTick) / 5.0F);
 
@@ -188,8 +201,8 @@ public class ModeWheelScreen extends Screen {
         drawWheel(guiGraphics, tx, cy, (int) (inner * scale), (int) (radius * scale),
                 toolSelected, hoveredToolSector, toolIcons, toolNames, TOOL_COLORS);
 
-        fillSector(guiGraphics, tx, cy, 0, CENTER_RADIUS, 0.0, Math.PI * 2, 0xE0202438);
-        fillSector(guiGraphics, tx, cy, CENTER_RADIUS - 1, CENTER_RADIUS, 0.0, Math.PI * 2, 0xFF3A4060);
+        fillSector(guiGraphics, tx, cy, 0, centerR(), 0.0, Math.PI * 2, 0xE0202438);
+        fillSector(guiGraphics, tx, cy, centerR() - 1, centerR(), 0.0, Math.PI * 2, 0xFF3A4060);
         guiGraphics.drawCenteredString(this.font,
                 Component.translatable(this.singleMode ? "wheel.iknow.single" : "wheel.iknow.multi"),
                 tx, cy - 8, 0xFFFFFFFF);
@@ -291,8 +304,8 @@ public class ModeWheelScreen extends Screen {
         int tx = toolX();
         int ex = enchX();
         int px = pickupX();
-        int radius = wheelR();
-        int inner = WHEEL_INNER;
+        int radius = outerR();
+        int inner = innerR();
 
         double eDist = Math.hypot(mouseX - ex, mouseY - cy);
         if (eDist <= radius) {
@@ -354,7 +367,7 @@ public class ModeWheelScreen extends Screen {
         }
 
         double tDist = Math.hypot(mouseX - tx, mouseY - cy);
-        if (tDist <= CENTER_RADIUS) {
+        if (tDist <= centerR()) {
             this.singleMode = !this.singleMode;
             playClickSound();
             return true;
@@ -375,8 +388,8 @@ public class ModeWheelScreen extends Screen {
         int tx = toolX();
         int ex = enchX();
         int px = pickupX();
-        int radius = wheelR();
-        int inner = WHEEL_INNER;
+        int radius = outerR();
+        int inner = innerR();
         double tDist = Math.hypot(mouseX - tx, mouseY - cy);
         this.hoveredToolSector = (tDist >= inner && tDist <= radius)
                 ? sectorAt(tx, cy, ToolMode.values().length, mouseX, mouseY) : -1;
