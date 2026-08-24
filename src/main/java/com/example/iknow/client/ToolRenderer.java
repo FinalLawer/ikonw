@@ -30,16 +30,8 @@ public class ToolRenderer extends BlockEntityWithoutLevelRenderer {
     public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
                              MultiBufferSource buffers, int light, int overlay) {
         pose.pushPose();
-        // 根据视角调整：让权杖在物品栏/手里呈舒适 3D 角度
-        if (ctx == ItemDisplayContext.GUI || ctx == ItemDisplayContext.GROUND || ctx == ItemDisplayContext.FIXED) {
-            pose.scale(0.6f, 0.6f, 0.6f);
-            pose.translate(0.0f, 0.0f, 0.0f);
-            pose.mulPose(Axis.XP.rotationDegrees(20));
-            pose.mulPose(Axis.YP.rotationDegrees(-45));
-        } else {
-            pose.scale(0.75f, 0.75f, 0.75f);
-            pose.translate(0.0f, 0.35f, 0.0f); // 手握在手柄处，水晶朝上
-        }
+        // 不再额外 scale/rotate：ItemRenderer 已按显示上下文定位（内置实体模型）。
+        // 几何以原点为中心、约 1 单位高，让手握住权杖中部。
         PoseStack.Pose poseEntry = pose.last();
         VertexConsumer vc = buffers.getBuffer(RenderType.entityTranslucentEmissive(WHITE));
         drawStaff(vc, poseEntry, overlay);
