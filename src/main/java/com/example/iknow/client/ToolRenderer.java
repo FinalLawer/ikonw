@@ -40,8 +40,9 @@ public class ToolRenderer extends BlockEntityWithoutLevelRenderer {
 
     private static void drawStaff(VertexConsumer vc, PoseStack.Pose p, int overlay) {
         int N = 8;
+        float yoff = 0.35f; // 手握点(原点)对准手柄下段，水晶朝上
         // ---- 柄（深色，较短的八棱柱）----
-        float hb = -0.5f, ht = -0.06f, rb = 0.05f, rt = 0.045f;
+        float hb = -0.5f + yoff, ht = -0.06f + yoff, rb = 0.05f, rt = 0.045f;
         int dark = color(58, 60, 64, 255);
         for (int i = 0; i < N; i++) {
             float[] a = ring(i, hb, rb), b = ring((i + 1) % N, hb, rb),
@@ -51,7 +52,7 @@ public class ToolRenderer extends BlockEntityWithoutLevelRenderer {
         // ---- 柄上两道发光能量环 ----
         int ringCyan = color(80, 226, 240, 255);
         for (int ri = 0; ri < 2; ri++) {
-            float r0 = -0.40f + ri * 0.16f, r1 = r0 + 0.03f, rr = 0.055f;
+            float r0 = -0.40f + yoff + ri * 0.16f, r1 = r0 + 0.03f, rr = 0.055f;
             for (int i = 0; i < N; i++) {
                 float[] a = ring(i, r0, rr), b = ring((i + 1) % N, r0, rr),
                         c = ring((i + 1) % N, r1, rr), d = ring(i, r1, rr);
@@ -59,15 +60,15 @@ public class ToolRenderer extends BlockEntityWithoutLevelRenderer {
             }
         }
         // ---- 护手（青）----
-        float g0 = -0.06f, g1 = 0.03f, gr = 0.08f;
+        float g0 = -0.06f + yoff, g1 = 0.03f + yoff, gr = 0.08f;
         int cyan = color(50, 210, 224, 255);
         for (int i = 0; i < N; i++) {
             float[] a = ring(i, g0, gr), b = ring((i + 1) % N, g0, gr),
                     c = ring((i + 1) % N, g1, gr), d = ring(i, g1, gr);
             addQuad(vc, p, a, b, c, d, cyan, overlay);
         }
-        // ---- 能量水晶头（大而亮：下锥 青 → 上锥 亮青 + 尖端）----
-        float cBase = 0.03f, cWaist = 0.25f, cApex = 0.5f, rBase = 0.09f, rWaist = 0.14f;
+        // ---- 能量水晶头（大而亮）----
+        float cBase = 0.03f + yoff, cWaist = 0.25f + yoff, cApex = 0.5f + yoff, rBase = 0.09f, rWaist = 0.14f;
         int glow = color(90, 222, 240, 255);
         int bright = color(225, 255, 255, 255);
         for (int i = 0; i < N; i++) {
