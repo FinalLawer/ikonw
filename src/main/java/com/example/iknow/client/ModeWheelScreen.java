@@ -4,7 +4,7 @@ import com.example.iknow.FlightHandler;
 import com.example.iknow.ModDataComponents;
 import com.example.iknow.PickupMode;
 import com.example.iknow.ToolMode;
-import com.example.iknow.item.MultiToolItem;
+import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.network.ModeChangePayload;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -45,7 +45,7 @@ public class ModeWheelScreen extends Screen {
     };
 
     private static final int[] ENCH_OPTIONS = {
-            MultiToolItem.ENCHANT_SILK, MultiToolItem.ENCHANT_FORTUNE, MultiToolItem.ENCHANT_OFF
+            IknowToolItem.ENCHANT_SILK, IknowToolItem.ENCHANT_FORTUNE, IknowToolItem.ENCHANT_OFF
     };
     private static final int[] ENCH_COLORS = {
             0x2F8FDF, 0xD9A428, 0x6E6E6E
@@ -102,18 +102,18 @@ public class ModeWheelScreen extends Screen {
         super.init();
         int cy = this.height / 2;
         ItemStack stack = heldStack();
-        int speed = stack != null ? MultiToolItem.miningSpeed(stack) : 50;
-        int flight = stack != null ? MultiToolItem.flightSpeed(stack) : 50;
-        float blockReach = stack != null ? MultiToolItem.blockReach(stack) : MultiToolItem.DEFAULT_BLOCK_REACH;
-        float attackReach = stack != null ? MultiToolItem.attackReach(stack) : MultiToolItem.DEFAULT_ATTACK_REACH;
+        int speed = stack != null ? IknowToolItem.miningSpeed(stack) : 50;
+        int flight = stack != null ? IknowToolItem.flightSpeed(stack) : 50;
+        float blockReach = stack != null ? IknowToolItem.blockReach(stack) : IknowToolItem.DEFAULT_BLOCK_REACH;
+        float attackReach = stack != null ? IknowToolItem.attackReach(stack) : IknowToolItem.DEFAULT_ATTACK_REACH;
         this.speedSlider = new ValueSlider(CONTROL_X, cy + MINING_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
                 speed, ModeWheelScreen::onSpeedChanged);
         this.flightSpeedSlider = new ValueSlider(CONTROL_X, cy + FLIGHT_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
                 flight, ModeWheelScreen::onFlightSpeedChanged);
         this.blockReachSlider = new FloatSlider(CONTROL_X, cy + BLOCK_REACH_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
-                MultiToolItem.DEFAULT_BLOCK_REACH, REACH_MAX, blockReach, ModeWheelScreen::onBlockReachChanged);
+                IknowToolItem.DEFAULT_BLOCK_REACH, REACH_MAX, blockReach, ModeWheelScreen::onBlockReachChanged);
         this.attackReachSlider = new FloatSlider(CONTROL_X, cy + ATTACK_REACH_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
-                MultiToolItem.DEFAULT_ATTACK_REACH, REACH_MAX, attackReach, ModeWheelScreen::onAttackReachChanged);
+                IknowToolItem.DEFAULT_ATTACK_REACH, REACH_MAX, attackReach, ModeWheelScreen::onAttackReachChanged);
         this.addRenderableWidget(this.speedSlider);
         this.addRenderableWidget(this.flightSpeedSlider);
         this.addRenderableWidget(this.blockReachSlider);
@@ -235,11 +235,11 @@ public class ModeWheelScreen extends Screen {
                 CONTROL_X, cy + FLIGHT_LABEL_Y, 0xFFDDDDDD);
         drawFlightButton(guiGraphics, cy);
         drawNightVisionButton(guiGraphics, cy);
-        float blockReachValue = this.blockReachSlider != null ? this.blockReachSlider.floatValue() : MultiToolItem.DEFAULT_BLOCK_REACH;
+        float blockReachValue = this.blockReachSlider != null ? this.blockReachSlider.floatValue() : IknowToolItem.DEFAULT_BLOCK_REACH;
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.block_reach").append(String.format("%.1f", blockReachValue)),
                 CONTROL_X, cy + BLOCK_REACH_LABEL_Y, 0xFFDDDDDD);
-        float attackReachValue = this.attackReachSlider != null ? this.attackReachSlider.floatValue() : MultiToolItem.DEFAULT_ATTACK_REACH;
+        float attackReachValue = this.attackReachSlider != null ? this.attackReachSlider.floatValue() : IknowToolItem.DEFAULT_ATTACK_REACH;
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.attack_reach").append(String.format("%.1f", attackReachValue)),
                 CONTROL_X, cy + ATTACK_REACH_LABEL_Y, 0xFFDDDDDD);
@@ -296,7 +296,7 @@ public class ModeWheelScreen extends Screen {
                     return true;
                 }
             } else {
-                setEnchantMode(MultiToolItem.ENCHANT_OFF);
+                setEnchantMode(IknowToolItem.ENCHANT_OFF);
                 return true;
             }
         }
@@ -413,7 +413,7 @@ public class ModeWheelScreen extends Screen {
             this.onClose();
             return;
         }
-        int modes = MultiToolItem.modes(stack);
+        int modes = IknowToolItem.modes(stack);
         int next = this.singleMode ? ToolMode.only(mode) : ToolMode.toggle(modes, mode);
         stack.set(ModDataComponents.TOOL_MODES.get(), next);
         sendUpdate(stack);
@@ -430,7 +430,7 @@ public class ModeWheelScreen extends Screen {
         }
         stack.set(ModDataComponents.ENCHANT_MODE.get(), mode);
         if (Minecraft.getInstance().level != null) {
-            MultiToolItem.applyEnchantments(stack, mode, Minecraft.getInstance().level.registryAccess());
+            IknowToolItem.applyEnchantments(stack, mode, Minecraft.getInstance().level.registryAccess());
         }
         sendUpdate(stack);
         playClickSound();
@@ -443,14 +443,14 @@ public class ModeWheelScreen extends Screen {
         int flags = (noInertia ? ModeChangePayload.FLAG_NO_INERTIA : 0)
                 | (nightVision ? ModeChangePayload.FLAG_NIGHT_VISION : 0);
         PacketDistributor.sendToServer(new ModeChangePayload(
-                MultiToolItem.modes(stack),
-                MultiToolItem.enchantMode(stack),
-                MultiToolItem.miningSpeed(stack),
-                MultiToolItem.flightSpeed(stack),
+                IknowToolItem.modes(stack),
+                IknowToolItem.enchantMode(stack),
+                IknowToolItem.miningSpeed(stack),
+                IknowToolItem.flightSpeed(stack),
                 stack.getOrDefault(ModDataComponents.PICKUP_MODE.get(), 0),
                 flags,
-                MultiToolItem.blockReach(stack),
-                MultiToolItem.attackReach(stack)));
+                IknowToolItem.blockReach(stack),
+                IknowToolItem.attackReach(stack)));
     }
 
     static void onSpeedChanged(int speed) {
@@ -525,22 +525,22 @@ public class ModeWheelScreen extends Screen {
 
     private int currentToolModes() {
         ItemStack stack = heldStack();
-        return stack != null ? MultiToolItem.modes(stack) : ToolMode.DEFAULT_MASK;
+        return stack != null ? IknowToolItem.modes(stack) : ToolMode.DEFAULT_MASK;
     }
 
     private int currentEnchantMode() {
         ItemStack stack = heldStack();
-        return stack != null ? MultiToolItem.enchantMode(stack) : MultiToolItem.ENCHANT_OFF;
+        return stack != null ? IknowToolItem.enchantMode(stack) : IknowToolItem.ENCHANT_OFF;
     }
 
     private PickupMode currentMagnetMode() {
         ItemStack stack = heldStack();
-        return stack != null ? MultiToolItem.magnetMode(stack) : PickupMode.NONE;
+        return stack != null ? IknowToolItem.magnetMode(stack) : PickupMode.NONE;
     }
 
     private PickupMode currentBreakMode() {
         ItemStack stack = heldStack();
-        return stack != null ? MultiToolItem.breakMode(stack) : PickupMode.NONE;
+        return stack != null ? IknowToolItem.breakMode(stack) : PickupMode.NONE;
     }
 
     private Component currentPickupLabel(PickupMode magnet, PickupMode brk) {
@@ -565,7 +565,7 @@ public class ModeWheelScreen extends Screen {
         } else if (mode == PickupMode.BREAK_INVENTORY || mode == PickupMode.BREAK_AE) {
             brk = (brk == mode) ? PickupMode.NONE : mode;
         }
-        MultiToolItem.setPickupModes(stack, mag, brk);
+        IknowToolItem.setPickupModes(stack, mag, brk);
         sendUpdate(stack);
         playClickSound();
     }
@@ -575,7 +575,7 @@ public class ModeWheelScreen extends Screen {
         if (stack == null) {
             return;
         }
-        MultiToolItem.setPickupModes(stack, PickupMode.NONE, PickupMode.NONE);
+        IknowToolItem.setPickupModes(stack, PickupMode.NONE, PickupMode.NONE);
         sendUpdate(stack);
         playClickSound();
     }
@@ -596,11 +596,11 @@ public class ModeWheelScreen extends Screen {
             return null;
         }
         ItemStack main = player.getMainHandItem();
-        if (main.getItem() instanceof MultiToolItem) {
+        if (main.getItem() instanceof IknowToolItem) {
             return main;
         }
         ItemStack off = player.getOffhandItem();
-        return off.getItem() instanceof MultiToolItem ? off : null;
+        return off.getItem() instanceof IknowToolItem ? off : null;
     }
 
     private static int sectorAt(int cx, int cy, int count, double mouseX, double mouseY) {
@@ -618,7 +618,7 @@ public class ModeWheelScreen extends Screen {
 
     private Component currentStatusComponent() {
         ItemStack stack = heldStack();
-        int modes = stack != null ? MultiToolItem.modes(stack) : ToolMode.DEFAULT_MASK;
+        int modes = stack != null ? IknowToolItem.modes(stack) : ToolMode.DEFAULT_MASK;
         List<Component> names = new ArrayList<>();
         for (ToolMode mode : ToolMode.values()) {
             if (ToolMode.isEnabled(modes, mode)) {
@@ -646,16 +646,16 @@ public class ModeWheelScreen extends Screen {
 
     private static ItemStack enchIcon(int mode) {
         return switch (mode) {
-            case MultiToolItem.ENCHANT_SILK -> new ItemStack(Items.ENCHANTED_BOOK);
-            case MultiToolItem.ENCHANT_FORTUNE -> new ItemStack(Items.GOLD_NUGGET);
+            case IknowToolItem.ENCHANT_SILK -> new ItemStack(Items.ENCHANTED_BOOK);
+            case IknowToolItem.ENCHANT_FORTUNE -> new ItemStack(Items.GOLD_NUGGET);
             default -> new ItemStack(Items.BARRIER);
         };
     }
 
     private static Component enchName(int mode) {
         return switch (mode) {
-            case MultiToolItem.ENCHANT_SILK -> Component.translatable("enchantmode.iknow.silk");
-            case MultiToolItem.ENCHANT_FORTUNE -> Component.translatable("enchantmode.iknow.fortune");
+            case IknowToolItem.ENCHANT_SILK -> Component.translatable("enchantmode.iknow.silk");
+            case IknowToolItem.ENCHANT_FORTUNE -> Component.translatable("enchantmode.iknow.fortune");
             default -> Component.translatable("enchantmode.iknow.off");
         };
     }

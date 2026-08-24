@@ -8,7 +8,7 @@ import com.example.iknow.FlightHandler;
 import com.example.iknow.ModDataComponents;
 import com.example.iknow.client.BasePlacerScreen;
 import com.example.iknow.client.CleanWorldScreen;
-import com.example.iknow.item.MultiToolItem;
+import com.example.iknow.item.IknowToolItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -40,7 +40,7 @@ public final class ModNetwork {
                     FlightHandler.setNightVision(player, (payload.flags() & ModeChangePayload.FLAG_NIGHT_VISION) != 0);
                     // 鏇存柊涓绘墜锛堟垨鍓墜锛夌殑澶氬姛鑳藉伐鍏锋ā寮忋€侀檮榄斾笌鎸栨帢閫熷害
         for (ItemStack stack : new ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
-                        if (stack.getItem() instanceof MultiToolItem) {
+                        if (stack.getItem() instanceof IknowToolItem) {
                             stack.set(ModDataComponents.TOOL_MODES.get(), payload.toolMask());
                             stack.set(ModDataComponents.ENCHANT_MODE.get(), payload.enchantMode());
                             stack.set(ModDataComponents.MINING_SPEED.get(), payload.miningSpeed());
@@ -48,7 +48,7 @@ public final class ModNetwork {
                             stack.set(ModDataComponents.PICKUP_MODE.get(), payload.pickupMode());
                             stack.set(ModDataComponents.BLOCK_REACH.get(), payload.blockReach());
                             stack.set(ModDataComponents.ATTACK_REACH.get(), payload.attackReach());
-                            MultiToolItem.applyEnchantments(stack, payload.enchantMode(), player.level().registryAccess());
+                            IknowToolItem.applyEnchantments(stack, payload.enchantMode(), player.level().registryAccess());
                         }
                     }
                 }));
@@ -59,7 +59,7 @@ public final class ModNetwork {
                     if (player == null) {
                         return;
                     }
-                    ItemStack tool = heldMultiTool(player);
+                    ItemStack tool = heldIknowTool(player);
                     if (tool == null || !Ae2Integration.isAe2Loaded()) {
                         return;
                     }
@@ -111,13 +111,13 @@ public final class ModNetwork {
                 }));
     }
 
-    private static ItemStack heldMultiTool(Player player) {
+    private static ItemStack heldIknowTool(Player player) {
         ItemStack main = player.getMainHandItem();
-        if (main.getItem() instanceof MultiToolItem) {
+        if (main.getItem() instanceof IknowToolItem) {
             return main;
         }
         ItemStack off = player.getOffhandItem();
-        return off.getItem() instanceof MultiToolItem ? off : null;
+        return off.getItem() instanceof IknowToolItem ? off : null;
     }
 }
 

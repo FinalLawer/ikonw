@@ -33,7 +33,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import com.example.iknow.item.MultiToolItem;
+import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.block.BasePlacerBlock;
 import com.example.iknow.block.CleanWorldBlock;
 import com.example.iknow.network.ModNetwork;
@@ -72,14 +72,14 @@ public class IknowMod {
             .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
 
     // 澶氬姛鑳藉伐鍏凤細闆嗘枾澶淬€侀晲瀛愩€侀攧澶淬€佸壀鍒€銆侀摬瀛愪簬涓€韬紝鎸変綇 R 鎵撳紑杞洏閫夋嫨鍔熻兘锛堝彲鍗曢€夋垨澶氶€夛級
-        public static final DeferredItem<MultiToolItem> MULTI_TOOL = ITEMS.register("iknow_tool",
-            () -> new MultiToolItem(new Item.Properties()
+        public static final DeferredItem<IknowToolItem> IKNOW_TOOL = ITEMS.register("iknow_tool",
+            () -> new IknowToolItem(new Item.Properties()
                     .component(ModDataComponents.TOOL_MODES, ToolMode.DEFAULT_MASK)
-                    .component(ModDataComponents.ENCHANT_MODE, MultiToolItem.ENCHANT_OFF)
+                    .component(ModDataComponents.ENCHANT_MODE, IknowToolItem.ENCHANT_OFF)
                     .component(ModDataComponents.MINING_SPEED, 50)
                     .component(ModDataComponents.FLIGHT_SPEED, 50)
-                    .component(ModDataComponents.BLOCK_REACH, MultiToolItem.DEFAULT_BLOCK_REACH)
-                    .component(ModDataComponents.ATTACK_REACH, MultiToolItem.DEFAULT_ATTACK_REACH)));
+                    .component(ModDataComponents.BLOCK_REACH, IknowToolItem.DEFAULT_BLOCK_REACH)
+                    .component(ModDataComponents.ATTACK_REACH, IknowToolItem.DEFAULT_ATTACK_REACH)));
 
     // Creates a creative tab with the id "iknow:example_tab" for the example item, that is placed after the combat tab
         public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
@@ -88,7 +88,7 @@ public class IknowMod {
             .icon(() -> EXAMPLE_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(EXAMPLE_ITEM.get());// Add the example item to the tab. For your own tabs, this method is preferred over the event
-        output.accept(MULTI_TOOL.get());// Add the multi tool to the mod's own tab
+        output.accept(IKNOW_TOOL.get());// Add the multi tool to the mod's own tab
                 output.accept(BASE_PLACER_ITEM.get());// Add the base placer block to the mod's own tab
         output.accept(CLEAN_WORLD_ITEM.get());// Add the clean world block to the mod's own tab
             }).build());

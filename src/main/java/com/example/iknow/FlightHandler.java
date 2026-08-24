@@ -1,6 +1,6 @@
 package com.example.iknow;
 
-import com.example.iknow.item.MultiToolItem;
+import com.example.iknow.item.IknowToolItem;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +73,7 @@ public final class FlightHandler {
             return;
         }
         Abilities abilities = player.getAbilities();
-        ItemStack tool = findMultiTool(player);
+        ItemStack tool = findIknowTool(player);
         // 拥有工具 → 创造飞行（不改动创造模式玩家）
         if (!abilities.instabuild) {
             boolean hasTool = tool != null;
@@ -88,7 +88,7 @@ public final class FlightHandler {
             }
         }
         // 飞行速度：按背包/手持工具的滑块值设置（全方向生效），无工具恢复原版 0.05
-        float target = tool != null ? 0.05F * MultiToolItem.flightSpeed(tool) / 50.0F : 0.05F;
+        float target = tool != null ? 0.05F * IknowToolItem.flightSpeed(tool) / 50.0F : 0.05F;
         target = Math.max(0.0F, target);
         if (Math.abs(abilities.getFlyingSpeed() - target) > 0.0001F) {
             abilities.setFlyingSpeed(target);
@@ -138,9 +138,9 @@ public final class FlightHandler {
         // 破坏类（破坏入包 / 破坏入 AE）由 PickupEvents.onBlockBreak 路由，不做磁吸，
         // 避免把玩家扔出的掉落物也被吸走。
         if (player instanceof ServerPlayer serverPlayer) {
-            ItemStack magnetTool = findMultiTool(player);
+            ItemStack magnetTool = findIknowTool(player);
             if (magnetTool != null) {
-                PickupMode mmode = MultiToolItem.magnetMode(magnetTool);
+                PickupMode mmode = IknowToolItem.magnetMode(magnetTool);
                 if (mmode == PickupMode.MAGNET || mmode == PickupMode.MAGNET_AE) {
                     handlePickup(serverPlayer, magnetTool, mmode);
                 }
@@ -161,10 +161,10 @@ public final class FlightHandler {
         AttributeInstance block = player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE);
         AttributeInstance attack = player.getAttribute(Attributes.ENTITY_INTERACTION_RANGE);
         if (block != null) {
-            block.setBaseValue(MultiToolItem.blockReach(tool));
+            block.setBaseValue(IknowToolItem.blockReach(tool));
         }
         if (attack != null) {
-            attack.setBaseValue(MultiToolItem.attackReach(tool));
+            attack.setBaseValue(IknowToolItem.attackReach(tool));
         }
     }
 
@@ -219,19 +219,19 @@ public final class FlightHandler {
     }
 
     /** 在玩家背包/装备栏/副手中查找多功能工具（优先主背包） */
-    private static ItemStack findMultiTool(Player player) {
+    private static ItemStack findIknowTool(Player player) {
         for (ItemStack stack : player.getInventory().items) {
-            if (isMultiTool(stack)) {
+            if (isIknowTool(stack)) {
                 return stack;
             }
         }
         for (ItemStack stack : player.getInventory().armor) {
-            if (isMultiTool(stack)) {
+            if (isIknowTool(stack)) {
                 return stack;
             }
         }
         for (ItemStack stack : player.getInventory().offhand) {
-            if (isMultiTool(stack)) {
+            if (isIknowTool(stack)) {
                 return stack;
             }
         }
@@ -249,7 +249,7 @@ public final class FlightHandler {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        if (!isHoldingMultiTool(player)) {
+        if (!isHoldingIknowTool(player)) {
             return;
         }
         float speed = event.getNewSpeed();
@@ -273,12 +273,12 @@ public final class FlightHandler {
         event.setNewSpeed(speed);
     }
 
-    private static boolean isHoldingMultiTool(Player player) {
-        return player.getMainHandItem().getItem() instanceof MultiToolItem
-                || player.getOffhandItem().getItem() instanceof MultiToolItem;
+    private static boolean isHoldingIknowTool(Player player) {
+        return player.getMainHandItem().getItem() instanceof IknowToolItem
+                || player.getOffhandItem().getItem() instanceof IknowToolItem;
     }
 
-    private static boolean isMultiTool(ItemStack stack) {
-        return !stack.isEmpty() && stack.is(IknowMod.MULTI_TOOL);
+    private static boolean isIknowTool(ItemStack stack) {
+        return !stack.isEmpty() && stack.is(IknowMod.IKNOW_TOOL);
     }
 }

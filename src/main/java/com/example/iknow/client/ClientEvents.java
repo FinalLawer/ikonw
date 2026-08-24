@@ -2,7 +2,7 @@ package com.example.iknow.client;
 
 import com.example.iknow.IknowMod;
 import com.example.iknow.FlightHandler;
-import com.example.iknow.item.MultiToolItem;
+import com.example.iknow.item.IknowToolItem;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -51,7 +51,7 @@ public final class ClientEvents {
         }
         if (OPEN_WHEEL.isDown()) {
             if (!wheelOpen && mc.screen == null && !suppressReopen) {
-                if (isHoldingMultiTool(mc.player)) {
+                if (isHoldingIknowTool(mc.player)) {
                     mc.setScreen(new ModeWheelScreen());
                     wheelOpen = true;
                 } else {
@@ -86,9 +86,9 @@ public final class ClientEvents {
         }
     }
 
-    private static boolean isHoldingMultiTool(Player player) {
-        return player.getMainHandItem().getItem() instanceof MultiToolItem
-                || player.getOffhandItem().getItem() instanceof MultiToolItem;
+    private static boolean isHoldingIknowTool(Player player) {
+        return player.getMainHandItem().getItem() instanceof IknowToolItem
+                || player.getOffhandItem().getItem() instanceof IknowToolItem;
     }
 }
 

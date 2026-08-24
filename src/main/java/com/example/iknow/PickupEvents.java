@@ -1,7 +1,7 @@
 package com.example.iknow;
 
 import appeng.api.implementations.blockentities.IWirelessAccessPoint;
-import com.example.iknow.item.MultiToolItem;
+import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.network.AeBindPayload;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -45,7 +45,7 @@ public final class PickupEvents {
             return;
         }
         ItemStack tool = event.getItemStack();
-        if (!(tool.getItem() instanceof MultiToolItem)) {
+        if (!(tool.getItem() instanceof IknowToolItem)) {
             return;
         }
         if (!(event.getLevel().getBlockEntity(event.getPos()) instanceof IWirelessAccessPoint)) {
@@ -77,11 +77,11 @@ public final class PickupEvents {
         if (player == null || !(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        ItemStack tool = heldMultiTool(player);
+        ItemStack tool = heldIknowTool(player);
         if (tool == null) {
             return;
         }
-        PickupMode mode = MultiToolItem.breakMode(tool);
+        PickupMode mode = IknowToolItem.breakMode(tool);
         if (mode != PickupMode.BREAK_INVENTORY && mode != PickupMode.BREAK_AE) {
             return;
         }
@@ -123,12 +123,12 @@ public final class PickupEvents {
     }
 
     /** 手持的多功能工具（主手优先，否则副手） */
-    private static ItemStack heldMultiTool(Player player) {
+    private static ItemStack heldIknowTool(Player player) {
         ItemStack main = player.getMainHandItem();
-        if (main.getItem() instanceof MultiToolItem) {
+        if (main.getItem() instanceof IknowToolItem) {
             return main;
         }
         ItemStack off = player.getOffhandItem();
-        return off.getItem() instanceof MultiToolItem ? off : null;
+        return off.getItem() instanceof IknowToolItem ? off : null;
     }
 }

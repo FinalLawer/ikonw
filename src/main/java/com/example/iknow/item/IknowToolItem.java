@@ -43,7 +43,7 @@ import net.neoforged.neoforge.common.ItemAbilities;
  * 澶氬姛鑳藉伐鍏凤細闆嗘枾澶淬€侀晲瀛愩€侀攧澶淬€佸壀鍒€銆侀摬瀛愪簬涓€韬€? * - 宸ュ叿妯″紡锛堝彲澶氶€夛級浠ヤ綅鎺╃爜瀛樺湪 {@link ModDataComponents#TOOL_MODES}
  * - 闄勯瓟妯″紡锛堝彧鍙崟閫夛細绮惧噯閲囬泦 / 鏃惰繍锛夊瓨鍦?{@link ModDataComponents#ENCHANT_MODE}
  * - 鑷甫 50 鐐规敾鍑讳激瀹炽€佹姠澶?X銆佽櫄鎷熼檮榄旓紙绮惧噯閲囬泦/鏃惰繍锛夛紝鎷ユ湁鏃跺彲鍒涢€犻琛? */
-public class MultiToolItem extends Item {
+public class IknowToolItem extends Item {
 
     // ============ 闄勯瓟妯″紡甯搁噺 ============
         public static final int ENCHANT_OFF = 0;
@@ -57,7 +57,7 @@ public class MultiToolItem extends Item {
     public static final float SHEARS_SPEED = 20.0F;
     public static final float SHOVEL_SPEED = 40.0F;
 
-    public MultiToolItem(Properties properties) {
+    public IknowToolItem(Properties properties) {
         super(properties);
     }
 
