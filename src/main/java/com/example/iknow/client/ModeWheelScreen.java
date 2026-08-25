@@ -6,6 +6,8 @@ import com.example.iknow.PickupMode;
 import com.example.iknow.ToolMode;
 import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.network.ModeChangePayload;
+import com.example.iknow.network.TimeControlPayload;
+import com.example.iknow.network.ModNetwork;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -56,17 +58,33 @@ public class ModeWheelScreen extends Screen {
     private static final int SLIDER_HEIGHT = 16;
     private static final int FLIGHT_BTN_WIDTH = 95;
     private static final int FLIGHT_BTN_HEIGHT = 16;
-    private static final int MINING_LABEL_Y = -56;
-    private static final int MINING_SLIDER_Y = -40;
-    private static final int FLIGHT_LABEL_Y = -18;
-    private static final int FLIGHT_SLIDER_Y = -2;
-    private static final int FLIGHT_BTN_Y = 22;
-    private static final int NIGHTVISION_BTN_Y = 44;
-    private static final int BLOCK_REACH_LABEL_Y = 62;
-    private static final int BLOCK_REACH_SLIDER_Y = 78;
-    private static final int ATTACK_REACH_LABEL_Y = 98;
-    private static final int ATTACK_REACH_SLIDER_Y = 114;
+    private static final int MINING_LABEL_Y = -60;
+    private static final int MINING_SLIDER_Y = -44;
+    private static final int FLIGHT_LABEL_Y = -22;
+    private static final int FLIGHT_SLIDER_Y = -6;
+    private static final int FLIGHT_BTN_Y = 18;
+    private static final int NIGHTVISION_BTN_Y = 40;
+    private static final int BLOCK_REACH_LABEL_Y = 58;
+    private static final int BLOCK_REACH_SLIDER_Y = 74;
+    private static final int ATTACK_REACH_LABEL_Y = 94;
+    private static final int ATTACK_REACH_SLIDER_Y = 110;
+    private static final int TIME_ROW_Y = -98;
+    private static final int LOCK_BTN_Y = -78;
     private static final float REACH_MAX = 10.0F;
+    /** 时间小按钮宽度（4 个等分一行） */
+    private static final int TIME_BTN_W = 22;
+    private static final int TIME_BTN_GAP = 2;
+    private static final int TIME_BTN_HEIGHT = 14;
+
+    // 时间阶段：清晨 / 正午 / 傍晚 / 黑夜
+    private static final int[] TIME_ACTIONS = {
+            TimeControlPayload.SET_MORNING, TimeControlPayload.SET_NOON,
+            TimeControlPayload.SET_DUSK, TimeControlPayload.SET_NIGHT
+    };
+    private static final String[] TIME_KEYS = {
+            "wheel.iknow.time_morning", "wheel.iknow.time_noon",
+            "wheel.iknow.time_dusk", "wheel.iknow.time_night"
+    };
 
     private static final PickupMode[] PICKUP_MODES = {
             PickupMode.MAGNET, PickupMode.MAGNET_AE, PickupMode.BREAK_INVENTORY, PickupMode.BREAK_AE
@@ -78,6 +96,8 @@ public class ModeWheelScreen extends Screen {
     private int hoveredEnchSector = -1;
     private int hoveredPickupSector = -1;
     private int tickCount = 0;
+    private boolean timeLocked = false;
+    private int selectedTimePhase = -1;
     private ValueSlider speedSlider;
     private ValueSlider flightSpeedSlider;
     private FloatSlider blockReachSlider;
@@ -113,13 +133,13 @@ public class ModeWheelScreen extends Screen {
         int flight = stack != null ? IknowToolItem.flightSpeed(stack) : 50;
         float blockReach = stack != null ? IknowToolItem.blockReach(stack) : IknowToolItem.DEFAULT_BLOCK_REACH;
         float attackReach = stack != null ? IknowToolItem.attackReach(stack) : IknowToolItem.DEFAULT_ATTACK_REACH;
-        this.speedSlider = new ValueSlider(CONTROL_X, cy + MINING_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
+        this.speedSlider = new ValueSlider(CONTROL_X, cy + vy(MINING_SLIDER_Y), SLIDER_WIDTH, SLIDER_HEIGHT,
                 speed, ModeWheelScreen::onSpeedChanged);
-        this.flightSpeedSlider = new ValueSlider(CONTROL_X, cy + FLIGHT_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
+        this.flightSpeedSlider = new ValueSlider(CONTROL_X, cy + vy(FLIGHT_SLIDER_Y), SLIDER_WIDTH, SLIDER_HEIGHT,
                 flight, ModeWheelScreen::onFlightSpeedChanged);
-        this.blockReachSlider = new FloatSlider(CONTROL_X, cy + BLOCK_REACH_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
+        this.blockReachSlider = new FloatSlider(CONTROL_X, cy + vy(BLOCK_REACH_SLIDER_Y), SLIDER_WIDTH, SLIDER_HEIGHT,
                 IknowToolItem.DEFAULT_BLOCK_REACH, REACH_MAX, blockReach, ModeWheelScreen::onBlockReachChanged);
-        this.attackReachSlider = new FloatSlider(CONTROL_X, cy + ATTACK_REACH_SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT,
+        this.attackReachSlider = new FloatSlider(CONTROL_X, cy + vy(ATTACK_REACH_SLIDER_Y), SLIDER_WIDTH, SLIDER_HEIGHT,
                 IknowToolItem.DEFAULT_ATTACK_REACH, REACH_MAX, attackReach, ModeWheelScreen::onAttackReachChanged);
         this.addRenderableWidget(this.speedSlider);
         this.addRenderableWidget(this.flightSpeedSlider);
@@ -137,6 +157,15 @@ public class ModeWheelScreen extends Screen {
     private float wheelScale() {
         int spacing = rowSpacing();
         return Math.max(0.42F, Math.min(1.0F, (spacing - 6) / (2.0F * WHEEL_RADIUS_MAX)));
+    }
+
+    /** 左栏控件的纵向缩放：窗口越矮，控件越向中心收缩（避免溢出/重叠） */
+    private float leftScale() {
+        return Math.max(0.55F, Math.min(1.0F, (this.height - 70) / 200.0F));
+    }
+
+    private int vy(int offset) {
+        return (int) (offset * leftScale());
     }
 
     private int outerR() {
@@ -248,21 +277,23 @@ public class ModeWheelScreen extends Screen {
         int sliderValue = this.speedSlider != null ? this.speedSlider.valueInt() : 50;
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.speed").append(String.valueOf(sliderValue)),
-                CONTROL_X, cy + MINING_LABEL_Y, 0xFFDDDDDD);
+                CONTROL_X, cy + vy(MINING_LABEL_Y), 0xFFDDDDDD);
         int flightValue = this.flightSpeedSlider != null ? this.flightSpeedSlider.valueInt() : 50;
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.flight_speed").append(String.valueOf(flightValue)),
-                CONTROL_X, cy + FLIGHT_LABEL_Y, 0xFFDDDDDD);
+                CONTROL_X, cy + vy(FLIGHT_LABEL_Y), 0xFFDDDDDD);
         drawFlightButton(guiGraphics, cy);
         drawNightVisionButton(guiGraphics, cy);
         float blockReachValue = this.blockReachSlider != null ? this.blockReachSlider.floatValue() : IknowToolItem.DEFAULT_BLOCK_REACH;
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.block_reach").append(String.format("%.1f", blockReachValue)),
-                CONTROL_X, cy + BLOCK_REACH_LABEL_Y, 0xFFDDDDDD);
+                CONTROL_X, cy + vy(BLOCK_REACH_LABEL_Y), 0xFFDDDDDD);
         float attackReachValue = this.attackReachSlider != null ? this.attackReachSlider.floatValue() : IknowToolItem.DEFAULT_ATTACK_REACH;
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.attack_reach").append(String.format("%.1f", attackReachValue)),
-                CONTROL_X, cy + ATTACK_REACH_LABEL_Y, 0xFFDDDDDD);
+                CONTROL_X, cy + vy(ATTACK_REACH_LABEL_Y), 0xFFDDDDDD);
+        drawTimeButtons(guiGraphics, cy, mouseX, mouseY);
+        drawLockButton(guiGraphics, cy, mouseX, mouseY);
     }
 
     private void drawWheel(GuiGraphics guiGraphics, int cx, int cy, int rIn, int rOut,
@@ -363,6 +394,15 @@ public class ModeWheelScreen extends Screen {
                 }
             }
             playClickSound();
+            return true;
+        }
+        int timeIdx = timeButtonIndexAt(mouseX, mouseY);
+        if (timeIdx >= 0) {
+            handleTimeButtonClick(timeIdx);
+            return true;
+        }
+        if (isLockButtonAt(mouseX, mouseY)) {
+            handleLockButtonClick();
             return true;
         }
 
@@ -511,13 +551,13 @@ public class ModeWheelScreen extends Screen {
 
     private boolean isFlightButtonAt(double mouseX, double mouseY) {
         int cy = this.height / 2;
-        int y = cy + FLIGHT_BTN_Y;
+        int y = cy + vy(FLIGHT_BTN_Y);
         return mouseX >= CONTROL_X && mouseX <= CONTROL_X + FLIGHT_BTN_WIDTH
                 && mouseY >= y && mouseY <= y + FLIGHT_BTN_HEIGHT;
     }
 
     private void drawFlightButton(GuiGraphics guiGraphics, int cy) {
-        int y = cy + FLIGHT_BTN_Y;
+        int y = cy + vy(FLIGHT_BTN_Y);
         Player player = Minecraft.getInstance().player;
         boolean noInertia = player != null && FlightHandler.noInertia(player);
         guiGraphics.fill(CONTROL_X, y, CONTROL_X + FLIGHT_BTN_WIDTH, y + FLIGHT_BTN_HEIGHT, noInertia ? 0xE03A9F4F : 0xD03A3A3A);
@@ -528,19 +568,85 @@ public class ModeWheelScreen extends Screen {
 
     private boolean isNightVisionButtonAt(double mouseX, double mouseY) {
         int cy = this.height / 2;
-        int y = cy + NIGHTVISION_BTN_Y;
+        int y = cy + vy(NIGHTVISION_BTN_Y);
         return mouseX >= CONTROL_X && mouseX <= CONTROL_X + FLIGHT_BTN_WIDTH
                 && mouseY >= y && mouseY <= y + FLIGHT_BTN_HEIGHT;
     }
 
     private void drawNightVisionButton(GuiGraphics guiGraphics, int cy) {
-        int y = cy + NIGHTVISION_BTN_Y;
+        int y = cy + vy(NIGHTVISION_BTN_Y);
         Player player = Minecraft.getInstance().player;
         boolean on = player != null && FlightHandler.nightVisionEnabled(player);
         guiGraphics.fill(CONTROL_X, y, CONTROL_X + FLIGHT_BTN_WIDTH, y + FLIGHT_BTN_HEIGHT, on ? 0xE03A9F4F : 0xD03A3A3A);
         guiGraphics.drawCenteredString(this.font,
                 Component.translatable(on ? "wheel.iknow.nightvision_on" : "wheel.iknow.nightvision_off"),
                 CONTROL_X + FLIGHT_BTN_WIDTH / 2, y + 4, 0xFFFFFFFF);
+    }
+
+    // ==================== 时间控制按钮（左栏顶部） ====================
+
+    /** 返回鼠标所在的时间小按钮索引（0..3），不在则 -1 */
+    private int timeButtonIndexAt(double mouseX, double mouseY) {
+        int cy = this.height / 2;
+        int y = cy + vy(TIME_ROW_Y);
+        if (mouseY < y || mouseY > y + TIME_BTN_HEIGHT) {
+            return -1;
+        }
+        for (int i = 0; i < TIME_KEYS.length; i++) {
+            int x = CONTROL_X + i * (TIME_BTN_W + TIME_BTN_GAP);
+            if (mouseX >= x && mouseX <= x + TIME_BTN_W) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void drawTimeButtons(GuiGraphics guiGraphics, int cy, int mouseX, int mouseY) {
+        int y = cy + vy(TIME_ROW_Y);
+        for (int i = 0; i < TIME_KEYS.length; i++) {
+            int x = CONTROL_X + i * (TIME_BTN_W + TIME_BTN_GAP);
+            boolean hover = mouseX >= x && mouseX <= x + TIME_BTN_W && mouseY >= y && mouseY <= y + TIME_BTN_HEIGHT;
+            boolean selected = i == selectedTimePhase;
+            int bg = selected ? 0xF02E8B57 : (hover ? 0xF05A5A5A : 0xE03A3A3A);
+            guiGraphics.fill(x, y, x + TIME_BTN_W, y + TIME_BTN_HEIGHT, bg);
+            // 选中高亮下边线
+            if (selected) {
+                guiGraphics.fill(x, y + TIME_BTN_HEIGHT - 2, x + TIME_BTN_W, y + TIME_BTN_HEIGHT, 0xFFFFD34E);
+            }
+            guiGraphics.drawCenteredString(this.font,
+                    Component.translatable(TIME_KEYS[i]), x + TIME_BTN_W / 2, y + 2,
+                    selected ? 0xFFFFFFFF : (hover ? 0xFFFFFFFF : 0xFFCCCCCC));
+        }
+    }
+
+    private boolean isLockButtonAt(double mouseX, double mouseY) {
+        int cy = this.height / 2;
+        int y = cy + vy(LOCK_BTN_Y);
+        return mouseX >= CONTROL_X && mouseX <= CONTROL_X + FLIGHT_BTN_WIDTH
+                && mouseY >= y && mouseY <= y + FLIGHT_BTN_HEIGHT;
+    }
+
+    private void drawLockButton(GuiGraphics guiGraphics, int cy, int mouseX, int mouseY) {
+        int y = cy + vy(LOCK_BTN_Y);
+        boolean hover = mouseX >= CONTROL_X && mouseX <= CONTROL_X + FLIGHT_BTN_WIDTH
+                && mouseY >= y && mouseY <= y + FLIGHT_BTN_HEIGHT;
+        int bg = timeLocked ? 0xF0C0392B : (hover ? 0xF05A5A5A : 0xE03A3A3A);
+        guiGraphics.fill(CONTROL_X, y, CONTROL_X + FLIGHT_BTN_WIDTH, y + FLIGHT_BTN_HEIGHT, bg);
+        guiGraphics.drawCenteredString(this.font,
+                Component.translatable(timeLocked ? "wheel.iknow.time_locked" : "wheel.iknow.time_flowing"),
+                CONTROL_X + FLIGHT_BTN_WIDTH / 2, y + 4, 0xFFFFFFFF);
+    }
+
+    private void handleTimeButtonClick(int phase) {
+        ModNetwork.sendTimeControl(TIME_ACTIONS[phase]);
+        selectedTimePhase = phase;
+        playClickSound();
+    }
+
+    private void handleLockButtonClick() {
+        ModNetwork.sendTimeControl(TimeControlPayload.TOGGLE_LOCK);
+        timeLocked = !timeLocked;
+        playClickSound();
     }
 
     private int currentToolModes() {

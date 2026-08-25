@@ -36,7 +36,6 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.block.BasePlacerBlock;
 import com.example.iknow.block.CleanWorldBlock;
-import com.example.iknow.block.InfinityOutputterBlock;
 import com.example.iknow.block.InfiniteSourceBlock;
 import com.example.iknow.network.ModNetwork;
 
@@ -68,22 +67,6 @@ public class IknowMod {
         public static final DeferredBlock<CleanWorldBlock> CLEAN_WORLD = BLOCKS.register("clean_world",
             () -> new CleanWorldBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(2.0F)));
     public static final DeferredItem<BlockItem> CLEAN_WORLD_ITEM = ITEMS.registerSimpleBlockItem("clean_world", CLEAN_WORLD);
-
-    // 娓愭棤闄愬師浠惰緭鍑哄櫒锛氭棤闄愮煶鍙戝簲锛坆locket 鏃犻檺铏借兘锛� 妫嫙闅愬己锛� 鑰佺湅闃熻緭鍑哄暐?
-    // 仅在 AE2 已加载时注册（无 AE2 不注册该物品，保持 mod 独立运行）
-    public static final DeferredBlock<InfinityOutputterBlock> INFINITE_ITEM_OUTPUTTER;
-    public static final DeferredItem<BlockItem> INFINITE_ITEM_OUTPUTTER_ITEM;
-
-    static {
-        if (net.neoforged.fml.ModList.get().isLoaded("ae2")) {
-            INFINITE_ITEM_OUTPUTTER = BLOCKS.register("infinite_item_outputter",
-                () -> new InfinityOutputterBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_CYAN).strength(2.0F)));
-            INFINITE_ITEM_OUTPUTTER_ITEM = ITEMS.registerSimpleBlockItem("infinite_item_outputter", INFINITE_ITEM_OUTPUTTER);
-        } else {
-            INFINITE_ITEM_OUTPUTTER = null;
-            INFINITE_ITEM_OUTPUTTER_ITEM = null;
-        }
-    }
 
     // 3 个无限源方块：原石（物品）、熔岩（流体）、水（流体）——主动向 6 面输出，且自身是存储无限量的容器
     public static final DeferredBlock<InfiniteSourceBlock> INFINITE_STONE = BLOCKS.register("infinite_stone",
@@ -125,9 +108,6 @@ public class IknowMod {
         output.accept(IKNOW_TOOL.get());// Add the multi tool to the mod's own tab
                 output.accept(BASE_PLACER_ITEM.get());// Add the base placer block to the mod's own tab
         output.accept(CLEAN_WORLD_ITEM.get());// Add the clean world block to the mod's own tab
-                if (INFINITE_ITEM_OUTPUTTER_ITEM != null) {
-                    output.accept(INFINITE_ITEM_OUTPUTTER_ITEM.get());// Add the infinite item outputter (AE2 only)
-                }
                 output.accept(INFINITE_STONE_ITEM.get());// Add the infinite stone (cobblestone source)
                 output.accept(INFINITE_LAVA_ITEM.get());// Add the infinite lava source
                 output.accept(INFINITE_WATER_ITEM.get());// Add the infinite water source
@@ -166,13 +146,8 @@ public class IknowMod {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
-    /** 方块实体能力注册：AE2 网格主机 + 无限源方块（可抽取物品/流体） */
+    /** 方块实体能力注册：无限源方块（可抽取物品/流体） */
     public void registerCapabilities(net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) {
-        if (ModBlockEntities.INFINITE_OUTPUTTER != null) {
-            event.registerBlockEntity(appeng.api.AECapabilities.IN_WORLD_GRID_NODE_HOST,
-                    ModBlockEntities.INFINITE_OUTPUTTER.get(),
-                    (be, context) -> (appeng.api.networking.IInWorldGridNodeHost) be);
-        }
         // 无限物品源（原石）：可无限抽取物品的能力
         event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
                 ModBlockEntities.INFINITE_ITEM_SOURCE.get(),

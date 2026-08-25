@@ -109,21 +109,33 @@ public final class ModNetwork {
                         CleanWorldHandler.setPaused(sp, payload.paused());
                     }
                 }));
-        // 鏃犻檺鍘熶欢杈撳嚭鍣細鍒囨崲杈撳嚭闈�
-        registrar.playToServer(InfinityOutputterActionPayload.TYPE, InfinityOutputterActionPayload.STREAM_CODEC, (payload, context) ->
+        // 时间控制：设置清晨/正午/傍晚/黑夜，或锁定时间流逝
+        registrar.playToServer(TimeControlPayload.TYPE, TimeControlPayload.STREAM_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {
-                    if (context.player() instanceof ServerPlayer sp && sp.containerMenu instanceof com.example.iknow.client.InfinityOutputterMenu menu) {
-                        com.example.iknow.block.InfinityOutputterBlockEntity be = menu.getHost();
-                        if (be != null && payload.action() == InfinityOutputterActionPayload.CYCLE_FACING) {
-                            be.cycleOutputFacing();
+                    if (context.player() == null || !(context.player().level() instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+                        return;
+                    }
+                    switch (payload.action()) {
+                        case TimeControlPayload.SET_MORNING -> serverLevel.setDayTime(0);
+                        case TimeControlPayload.SET_NOON -> serverLevel.setDayTime(6000);
+                        case TimeControlPayload.SET_DUSK -> serverLevel.setDayTime(12000);
+                        case TimeControlPayload.SET_NIGHT -> serverLevel.setDayTime(18000);
+                        case TimeControlPayload.TOGGLE_LOCK -> {
+                            boolean locked = serverLevel.getGameRules()
+                                    .getRule(net.minecraft.world.level.GameRules.RULE_DAYLIGHT).get();
+                            serverLevel.getGameRules()
+                                    .getRule(net.minecraft.world.level.GameRules.RULE_DAYLIGHT)
+                                    .set(!locked, serverLevel.getServer());
+                        }
+                        default -> {
                         }
                     }
                 }));
     }
 
-    /** 客户端发送无限原件输出器动作（切输出面）到服务端 */
-    public static void sendInfinityOutputterAction(int action) {
-        net.neoforged.neoforge.network.PacketDistributor.sendToServer(new InfinityOutputterActionPayload(action));
+    /** 客户端发送时间控制动作到服务端 */
+    public static void sendTimeControl(int action) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(new TimeControlPayload(action));
     }
 
     private static ItemStack heldIknowTool(Player player) {

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:pointed_dripstone" },
+    { "item": "minecraft:cauldron" },
+    { "item": "minecraft:lava_bucket" }
+  ],
+  "result": {
+    "id": "iknow:infinite_lava",
+    "count": 1
+  }
+}
