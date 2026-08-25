@@ -109,6 +109,13 @@ public final class ModNetwork {
                         CleanWorldHandler.setPaused(sp, payload.paused());
                     }
                 }));
+        // 定时清理前提示开关
+        registrar.playToServer(CleanWarnPayload.TYPE, CleanWarnPayload.STREAM_CODEC, (payload, context) ->
+                context.enqueueWork(() -> {
+                    if (context.player() instanceof ServerPlayer sp) {
+                        CleanWorldHandler.setWarnEnabled(sp, payload.enabled());
+                    }
+                }));
         // 时间控制：设置清晨/正午/傍晚/黑夜，或锁定时间流逝
         registrar.playToServer(TimeControlPayload.TYPE, TimeControlPayload.STREAM_CODEC, (payload, context) ->
                 context.enqueueWork(() -> {

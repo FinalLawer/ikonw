@@ -18,7 +18,8 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 public final class CleanWorldHandler {
 
     private static final Map<UUID, State> STATES = new HashMap<>();
-    private static final long WARN_THRESHOLD_MS = 30_000L;
+    /** 提前提示阈值：剩余 1 分钟时提醒一次 */
+    private static final long WARN_THRESHOLD_MS = 60_000L;
 
     private CleanWorldHandler() {
     }
@@ -37,6 +38,17 @@ public final class CleanWorldHandler {
         if (s != null) {
             s.paused = paused;
             s.lastTickMs = System.currentTimeMillis();
+        }
+    }
+
+    /** 鎵撳紑/鍏抽棴 娓呯悊鍓嶆彁绀?*/
+    public static void setWarnEnabled(ServerPlayer player, boolean enabled) {
+        State s = STATES.get(player.getUUID());
+        if (s != null) {
+            s.warnEnabled = enabled;
+            if (!enabled) {
+                s.warned = false;
+            }
         }
     }
 
@@ -72,15 +84,17 @@ public final class CleanWorldHandler {
         long dt = now - s.lastTickMs;
         s.lastTickMs = now;
         s.remainingMs -= dt;
-        if (!s.warned30 && s.remainingMs > 0 && s.remainingMs <= WARN_THRESHOLD_MS) {
-            s.warned30 = true;
-            player.sendSystemMessage(Component.translatable("message.iknow.clean_warn_30"));
+        // 剩余 1 分钟时提醒一次，提醒秒数为真实剩余时间
+        if (s.warnEnabled && !s.warned && s.remainingMs > 0 && s.remainingMs <= WARN_THRESHOLD_MS) {
+            s.warned = true;
+            int secs = (int) Math.max(1, (s.remainingMs + 999) / 1000);
+            player.sendSystemMessage(Component.translatable("message.iknow.clean_warn", secs));
         }
         if (s.remainingMs <= 0) {
             clearNow(player);
             // 寰幆杩愯锛氶噸鏂板紑濮嬩竴杞€掕鏃?
         s.remainingMs = s.durationMs;
-            s.warned30 = false;
+            s.warned = false;
             s.lastTickMs = now;
         }
     }
@@ -98,7 +112,8 @@ public final class CleanWorldHandler {
         public long durationMs;
         public boolean running;
         public boolean paused;
-        boolean warned30;
+        public boolean warnEnabled = true;
+        boolean warned;
         long lastTickMs;
 
         State(long remainingMs, boolean running, boolean paused) {

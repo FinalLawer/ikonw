@@ -3,6 +3,7 @@ package com.example.iknow.client;
 import com.example.iknow.network.CleanNowPayload;
 import com.example.iknow.network.CleanPausePayload;
 import com.example.iknow.network.CleanStartPayload;
+import com.example.iknow.network.CleanWarnPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -31,9 +32,11 @@ public class CleanWorldScreen extends Screen {
     private Button confirmButton;
     private Button startButton;
     private Button pauseButton;
+    private Button warnButton;
     private Button knowButton;
     private Button dontKnowButton;
     private EditBox timeField;
+    private boolean warnEnabled = true;
 
     public CleanWorldScreen(int remainingSeconds, int durationSeconds, boolean running, boolean paused) {
         super(Component.translatable("title.iknow.clean_world"));
@@ -51,11 +54,17 @@ public class CleanWorldScreen extends Screen {
         this.rebuildWidgets();
     }
 
+    /** 让主内容在窗口高度上垂直居中，适配窗口缩放 */
+    private int layoutTop() {
+        return Math.max(0, (this.height - 262) / 2);
+    }
+
     @Override
     protected void init() {
         int midX = this.width / 2;
+        int top = layoutTop();
         this.clearNowButton = Button.builder(Component.translatable("button.iknow.clean_now"), b -> setConfirm(true))
-                .bounds(midX - 80, 40, 160, 20).build();
+                .bounds(midX - 80, top + 40, 160, 20).build();
         this.confirmButton = Button.builder(Component.translatable("button.iknow.confirm_time"), b -> {
             try {
                 this.lockedSeconds = Math.max(1, Integer.parseInt(this.timeField.getValue().trim()));
@@ -63,18 +72,21 @@ public class CleanWorldScreen extends Screen {
             } catch (NumberFormatException e) {
                 this.lockedSeconds = 0;
             }
-        }).bounds(midX - 80, 112, 160, 20).build();
+        }).bounds(midX - 80, top + 112, 160, 20).build();
         this.startButton = Button.builder(Component.translatable("button.iknow.start_clean"), b -> startTimer())
-                .bounds(midX - 80, 140, 160, 20).build();
+                .bounds(midX - 80, top + 140, 160, 20).build();
         this.pauseButton = Button.builder(Component.translatable("button.iknow.pause"), b -> togglePause())
-                .bounds(midX - 80, 168, 160, 20).build();
-        this.timeField = new EditBox(this.font, midX - 80, 84, 160, 20, Component.literal(""));
+                .bounds(midX - 80, top + 168, 160, 20).build();
+        this.warnButton = Button.builder(Component.translatable("button.iknow.warn_on"), b -> toggleWarn())
+                .bounds(midX - 80, top + 196, 160, 20).build();
+        this.timeField = new EditBox(this.font, midX - 80, top + 84, 160, 20, Component.literal(""));
         this.timeField.setMaxLength(6);
         this.timeField.setValue("60");
         this.addRenderableWidget(this.clearNowButton);
         this.addRenderableWidget(this.confirmButton);
         this.addRenderableWidget(this.startButton);
         this.addRenderableWidget(this.pauseButton);
+        this.addRenderableWidget(this.warnButton);
         this.addRenderableWidget(this.timeField);
 
         // 寮圭獥纭鎸夐挳锛堜粎寮圭獥鏃跺彲瑙侊級
@@ -99,9 +111,18 @@ public class CleanWorldScreen extends Screen {
         this.confirmButton.visible = !this.showingConfirm;
         this.startButton.visible = !this.showingConfirm;
         this.pauseButton.visible = !this.showingConfirm;
+        this.warnButton.visible = !this.showingConfirm;
         this.timeField.visible = !this.showingConfirm;
         this.knowButton.visible = this.showingConfirm;
         this.dontKnowButton.visible = this.showingConfirm;
+    }
+
+    private void toggleWarn() {
+        this.warnEnabled = !this.warnEnabled;
+        PacketDistributor.sendToServer(new CleanWarnPayload(this.warnEnabled));
+        if (this.warnButton != null) {
+            this.warnButton.setMessage(Component.translatable(this.warnEnabled ? "button.iknow.warn_on" : "button.iknow.warn_off"));
+        }
     }
 
     private void startTimer() {
@@ -160,18 +181,19 @@ public class CleanWorldScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         int cx = this.width / 2;
-        guiGraphics.drawCenteredString(this.font, this.title, cx, 20, 0xFFFFFFFF);
+        int top = layoutTop();
+        guiGraphics.drawCenteredString(this.font, this.title, cx, top + 20, 0xFFFFFFFF);
         if (this.showingConfirm) {
             // 寮圭獥鏃堕殣钘忚儗鍚庣殑鐘舵€?鍊掕鏃?
         this.drawConfirmPopup(guiGraphics, cx);
         } else {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.clean_timer"), cx, 64, 0xFFAAAAAA);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.clean_timer"), cx, top + 64, 0xFFAAAAAA);
             guiGraphics.drawCenteredString(this.font, Component.translatable(this.running ? "label.iknow.running" : "label.iknow.idle"),
-                    cx, 196, 0xFFDDDDDD);
+                    cx, top + 224, 0xFFDDDDDD);
             if (this.running) {
                 String time = formatTime(this.remainingMs);
                 guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.countdown").append(time),
-                        cx, 216, this.remainingMs <= 30_000L ? 0xFFFF5555 : 0xFF66FF66);
+                        cx, top + 242, this.remainingMs <= 60_000L ? 0xFFFF5555 : 0xFF66FF66);
             }
         }
     }

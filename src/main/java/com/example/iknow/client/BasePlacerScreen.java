@@ -58,18 +58,24 @@ public class BasePlacerScreen extends Screen {
         return (this.width - (16 * SWATCH + 15 * GAP)) / 2;
     }
 
+    /** 主内容贴近窗口顶部 */
+    private int layoutTop() {
+        return 0;
+    }
+
     @Override
     protected void init() {
         int midX = this.width / 2;
+        int top = layoutTop();
         this.oddButton = Button.builder(Component.translatable("button.iknow.style_odd"), b -> setStyle(BaseBuildHandler.STYLE_ODD))
-                .bounds(midX - 80, 116, 78, 20).build();
+                .bounds(midX - 80, top + 116, 78, 20).build();
         this.evenButton = Button.builder(Component.translatable("button.iknow.style_even"), b -> setStyle(BaseBuildHandler.STYLE_EVEN))
-                .bounds(midX + 2, 116, 78, 20).build();
-        this.addRenderableWidget(new SizeSlider(midX - 80, 154, 160, 16));
+                .bounds(midX + 2, top + 116, 78, 20).build();
+        this.addRenderableWidget(new SizeSlider(midX - 80, top + 154, 160, 16));
         this.solidButton = Button.builder(Component.translatable("button.iknow.solid_off"), b -> setSolid(!this.solid))
-                .bounds(midX - 80, 174, 160, 20).build();
+                .bounds(midX - 80, top + 174, 160, 20).build();
         this.startButton = Button.builder(Component.translatable("button.iknow.start"), this::onStart)
-                .bounds(midX - 80, 200, 160, 20).build();
+                .bounds(midX - 80, top + 200, 160, 20).build();
         this.addRenderableWidget(this.oddButton);
         this.addRenderableWidget(this.evenButton);
         this.addRenderableWidget(this.solidButton);
@@ -140,7 +146,8 @@ public class BasePlacerScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            if (trySwatchClick(mouseX, mouseY, 40, true) || trySwatchClick(mouseX, mouseY, 80, false)) {
+            int top = layoutTop();
+            if (trySwatchClick(mouseX, mouseY, top + 40, true) || trySwatchClick(mouseX, mouseY, top + 80, false)) {
                 return true;
             }
         }
@@ -167,13 +174,14 @@ public class BasePlacerScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         int cx = this.width / 2;
-        guiGraphics.drawCenteredString(this.font, this.title, cx, 14, 0xFFFFFFFF);
-        this.drawRow(guiGraphics, 40, true);
-        this.drawRow(guiGraphics, 80, false);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.style"), cx, 104, 0xFFAAAAAA);
-        guiGraphics.drawCenteredString(this.font, this.status, cx, 226, 0xFFFFDD55);
+        int top = layoutTop();
+        guiGraphics.drawCenteredString(this.font, this.title, cx, top + 14, 0xFFFFFFFF);
+        this.drawRow(guiGraphics, top + 40, true);
+        this.drawRow(guiGraphics, top + 80, false);
+        guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.style"), cx, top + 104, 0xFFAAAAAA);
+        guiGraphics.drawCenteredString(this.font, this.status, cx, top + 226, 0xFFFFDD55);
         if (this.borderColor >= 0 && this.interiorColor >= 0) {
-            this.drawPreview(guiGraphics, 240);
+            this.drawPreview(guiGraphics);
         }
     }
 
@@ -195,13 +203,15 @@ public class BasePlacerScreen extends Screen {
         }
     }
 
-    private void drawPreview(GuiGraphics guiGraphics, int top) {
-        int cell = 3;
+    private void drawPreview(GuiGraphics guiGraphics) {
+        // 固定小尺寸预览（96px），放左下角，避免遮挡
+        int cell = 2;
         int size = 48 * cell;
-        int left = (this.width - size) / 2;
+        int left = 16;
+        int top = Math.max(layoutTop(), this.height - size - 26);
         int borderRgb = 0xFF000000 | CONCRETE_RGB[this.borderColor];
         int interiorRgb = 0xFF000000 | CONCRETE_RGB[this.interiorColor];
-        guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.preview"), this.width / 2, top - 10, 0xFFAAAAAA);
+        guiGraphics.drawCenteredString(this.font, Component.translatable("label.iknow.preview"), left + size / 2, top - 10, 0xFFAAAAAA);
         for (int gx = 0; gx < 48; gx++) {
             for (int gz = 0; gz < 48; gz++) {
                 boolean boundary = isBoundary(gx, gz);
