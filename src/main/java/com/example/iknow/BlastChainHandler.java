@@ -1,7 +1,10 @@
 package com.example.iknow;
 
 import com.example.iknow.item.IknowToolItem;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -11,29 +14,38 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * 爆破连锁：挖掘矿物方块（{@code neoforge:ores}）时，连锁挖掉以该方块为中心、
- * 半径 {@link #RADIUS} 立方体内的全部矿物方块。
+ * 半径 {@link #RADIUS}（欧氏距离）球体内的全部矿物方块。
  * <p>
- * 只扫描"已加载区块"内的方块（避免强制加载大片未加载区块造成卡死），
- * 掉落与附魔尊重多功能工具的既有逻辑，并默认收进背包（不在地面生成大量实体）。
+ * 采用"球壳 + 分批"处理：触发时只把目标矿石坐标收集进队列（按到原点距离由内到外排列），
+ * 之后每个 tick 处理一小批（{@link #ORES_PER_TICK}），避免一次性挖掉成千上万个矿石造成
+ * 服务端卡死；只扫描已加载区块，掉落入背包 / AE。
  * </p>
  */
 @EventBusSubscriber(modid = IknowMod.MODID)
 public final class BlastChainHandler {
 
-    /** 连锁半径（切比雪夫距离，即 2*RADIUS+1 的立方体） */
-    public static final int RADIUS = 32;
+    /** 连锁半径（欧氏距离，单位：方块） */
+    public static final int RADIUS = 64;
+
+    /** 每个 tick 处理的矿石数量（越大越快但越卡；2 秒 ≈ 40 tick） */
+    private static final int ORES_PER_TICK = 1200;
+
+    /** 待挖矿石队列（按到原点距离由内到外排序） */
+    private static final Deque<OreTask> QUEUE = new ArrayDeque<>();
 
     private BlastChainHandler() {
     }
 
-    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (event.getLevel().isClientSide()) {
             return;
@@ -56,33 +68,23 @@ public final class BlastChainHandler {
         if (!originState.is(Tags.Blocks.ORES)) {
             return;
         }
-        // 收集半径内所有矿物（不含原点，原点已由本次破坏处理）
-        List<BlockPos> targets = collectOrePositions(level, origin);
+        // 收集球体内所有矿物（不含原点），按到原点距离由内到外排序（球壳分批）
+        List<OreTask> targets = collectOrePositions(level, origin, tool, player);
         IknowMod.LOGGER.info("[BlastChain] origin={} breakMode={} magnet={} collected={}",
                 origin.toShortString(), IknowToolItem.breakMode(tool),
                 IknowToolItem.magnetMode(tool), targets.size());
         if (targets.isEmpty()) {
             return;
         }
-        // 依次破坏并路由掉落（单个失败不影响其余连锁）
-        for (BlockPos pos : targets) {
-            if (pos.equals(origin)) {
-                continue;
-            }
-            try {
-                mineOre(level, pos, player, tool);
-            } catch (Exception e) {
-                IknowMod.LOGGER.warn("[BlastChain] failed at {}: {}", pos.toShortString(), e.toString());
-            }
-        }
+        // 已有任务在处理：追加进同一队列（由内到外插到末尾，最内层先）
+        QUEUE.addAll(targets);
     }
 
-    /** 收集以 origin 为中心、半径 RADIUS 立方体内的所有矿物坐标（不含原点）。 */
-    private static List<BlockPos> collectOrePositions(ServerLevel level, BlockPos origin) {
-        List<BlockPos> result = new ArrayList<>();
+    /** 收集以 origin 为中心、半径 RADIUS 欧氏球体内的所有矿物坐标（不含原点），并按距离排序。 */
+    private static List<OreTask> collectOrePositions(ServerLevel level, BlockPos origin, ItemStack tool, Player player) {
+        List<OreTask> result = new ArrayList<>();
         int ox = origin.getX(), oy = origin.getY(), oz = origin.getZ();
-        // 用可变 BlockPos 逐坐标扫描；只对"已加载区块"内的方块做 getBlockState，
-        // 避免强制加载大片未加载区块造成卡死（radius 32 → 65^3 ≈ 27 万格，需严格限制）。
+        long r2 = (long) RADIUS * RADIUS;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int dx = -RADIUS; dx <= RADIUS; dx++) {
             for (int dy = -RADIUS; dy <= RADIUS; dy++) {
@@ -90,18 +92,53 @@ public final class BlastChainHandler {
                     if (dx == 0 && dy == 0 && dz == 0) {
                         continue;
                     }
+                    // 欧氏球体裁剪（dx²+dy²+dz² <= R²）
+                    long d2 = (long) dx * dx + (long) dy * dy + (long) dz * dz;
+                    if (d2 > r2) {
+                        continue;
+                    }
                     pos.set(ox + dx, oy + dy, oz + dz);
-                    // 仅当该坐标所在区块已加载时才读取方块状态（避免强制加载区块）
+                    // 只扫描已加载区块，避免强制加载大片未加载区块
                     if (!level.isLoaded(pos)) {
                         continue;
                     }
                     if (level.getBlockState(pos).is(Tags.Blocks.ORES)) {
-                        result.add(pos.immutable());
+                        result.add(new OreTask(pos.immutable(), level, tool, player));
                     }
                 }
             }
         }
+        // 按到原点的距离由内到外排序（球壳分批：先挖里层，再挖外层）
+        result.sort(Comparator.comparingDouble(t -> t.distSq(origin)));
         return result;
+    }
+
+    /** 每 tick 从各任务队列挖一批，直到队列空或处理完该批次 */
+    @SubscribeEvent
+    public static void onTick(ServerTickEvent.Post event) {
+        if (QUEUE.isEmpty()) {
+            return;
+        }
+        int processed = 0;
+        while (processed < ORES_PER_TICK && !QUEUE.isEmpty()) {
+            OreTask task = QUEUE.poll();
+            if (task == null) {
+                break;
+            }
+            // 用任务所记录的 level 与玩家处理，避免维度错配
+            ServerLevel level = task.level();
+            Player player = task.player();
+            if (level == null || player == null || !(player instanceof ServerPlayer sp)) {
+                continue;
+            }
+            try {
+                mineOre(level, task.pos(), sp, task.tool());
+            } catch (Exception e) {
+                IknowMod.LOGGER.warn("[BlastChain] failed at {}: {}",
+                        task.pos().toShortString(), e.toString());
+            }
+            processed++;
+        }
     }
 
     /** 破坏单个矿物，计算掉落（尊重采集/时运），并按工具拾取模式路由。 */
@@ -167,5 +204,12 @@ public final class BlastChainHandler {
         }
         ItemStack off = player.getOffhandItem();
         return off.getItem() instanceof IknowToolItem ? off : null;
+    }
+
+    /** 待挖矿石任务：记录坐标、所属维度、来源工具与玩家 */
+    private record OreTask(BlockPos pos, ServerLevel level, ItemStack tool, Player player) {
+        double distSq(BlockPos origin) {
+            return pos.distSqr(origin);
+        }
     }
 }
