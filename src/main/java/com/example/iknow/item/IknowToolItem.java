@@ -121,6 +121,16 @@ public class IknowToolItem extends Item {
         };
     }
 
+    /** 读取该物品的爆破连锁开关（默认关） */
+    public static boolean blastChainEnabled(ItemStack stack) {
+        return stack.getOrDefault(ModDataComponents.BLAST_CHAIN.get(), 0) == 1;
+    }
+
+    /** 写入爆破连锁开关 */
+    public static void setBlastChain(ItemStack stack, boolean enabled) {
+        stack.set(ModDataComponents.BLAST_CHAIN.get(), enabled ? 1 : 0);
+    }
+
     /** 写入磁吸轴 + 破坏轴（两个独立选项，可同时启用） */
     public static void setPickupModes(ItemStack stack, PickupMode magnet, PickupMode brk) {
         int magVal = switch (magnet) {
@@ -326,6 +336,10 @@ public class IknowToolItem extends Item {
         tooltipComponents.add(Component.translatable("tooltip.iknow.enchant_mode")
                 .withStyle(ChatFormatting.GRAY)
                 .append(enchantModeName(stack)));
+        if (blastChainEnabled(stack)) {
+            tooltipComponents.add(Component.translatable("tooltip.iknow.blast_on")
+                    .withStyle(ChatFormatting.GOLD));
+        }
         tooltipComponents.add(Component.translatable("tooltip.iknow.desc1").withStyle(ChatFormatting.DARK_GRAY));
         tooltipComponents.add(Component.translatable("tooltip.iknow.desc2").withStyle(ChatFormatting.DARK_GRAY));
         tooltipComponents.add(Component.translatable("tooltip.iknow.desc3").withStyle(ChatFormatting.AQUA));

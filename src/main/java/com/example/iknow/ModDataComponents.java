@@ -54,6 +54,11 @@ public final class ModDataComponents {
             DATA_COMPONENTS.registerComponentType("pickup_mode",
                     builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    /** 爆破连锁开关（0=关，1=开）：挖掘矿物时连锁挖掉半径内所有矿物 */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> BLAST_CHAIN =
+            DATA_COMPONENTS.registerComponentType("blast_chain",
+                    builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
     /** AE 无线访问点绑定位置 */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> LINKED_POS =
             DATA_COMPONENTS.registerComponentType("linked_pos",

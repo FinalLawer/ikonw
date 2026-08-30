@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "iknow:block/author_doll" },
+    "facing=east": { "model": "iknow:block/author_doll", "y": 90 },
+    "facing=south": { "model": "iknow:block/author_doll", "y": 180 },
+    "facing=west": { "model": "iknow:block/author_doll", "y": 270 }
+  }
+}

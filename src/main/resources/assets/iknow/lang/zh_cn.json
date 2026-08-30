@@ -31,6 +31,8 @@
   "wheel.iknow.inertia_off": "飞行惯性：关",
   "wheel.iknow.nightvision_on": "夜视：开",
   "wheel.iknow.nightvision_off": "夜视：关",
+  "wheel.iknow.blast_on": "爆破连锁：开",
+  "wheel.iknow.blast_off": "爆破连锁：关",
   "wheel.iknow.none": "无",
   "toolmode.iknow.axe": "斧头",
   "toolmode.iknow.pickaxe": "镐子",
@@ -42,6 +44,7 @@
   "enchantmode.iknow.off": "关闭",
   "tooltip.iknow.tool_modes": "工具模式: ",
   "tooltip.iknow.enchant_mode": "附魔模式: ",
+  "tooltip.iknow.blast_on": "爆破连锁：已开启（挖掘矿物时连锁挖掉 100 格内全部矿物）",
   "tooltip.iknow.desc1": "集斧头、镐子、锄头、剪刀、铲子于一身",
   "tooltip.iknow.desc2": "按住 R 打开功能轮盘",
   "tooltip.iknow.desc3": "拥有本工具时可创造飞行",
@@ -90,5 +93,6 @@
   "wheel.iknow.time_dusk": "傍晚",
   "wheel.iknow.time_night": "黑夜",
   "wheel.iknow.time_flowing": "时间正在流失",
-  "wheel.iknow.time_locked": "时间已停滞"
+  "wheel.iknow.time_locked": "时间已停滞",
+  "block.iknow.author_doll": "作者玩偶"
 }

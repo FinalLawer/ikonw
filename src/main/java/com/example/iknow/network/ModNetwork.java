@@ -48,6 +48,7 @@ public final class ModNetwork {
                             stack.set(ModDataComponents.PICKUP_MODE.get(), payload.pickupMode());
                             stack.set(ModDataComponents.BLOCK_REACH.get(), payload.blockReach());
                             stack.set(ModDataComponents.ATTACK_REACH.get(), payload.attackReach());
+                            IknowToolItem.setBlastChain(stack, (payload.flags() & ModeChangePayload.FLAG_BLAST_CHAIN) != 0);
                             IknowToolItem.applyEnchantments(stack, payload.enchantMode(), player.level().registryAccess());
                         }
                     }

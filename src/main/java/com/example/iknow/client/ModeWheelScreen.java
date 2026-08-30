@@ -68,6 +68,7 @@ public class ModeWheelScreen extends Screen {
     private static final int BLOCK_REACH_SLIDER_Y = 74;
     private static final int ATTACK_REACH_LABEL_Y = 94;
     private static final int ATTACK_REACH_SLIDER_Y = 110;
+    private static final int BLAST_BTN_Y = 132;
     private static final int TIME_ROW_Y = -98;
     private static final int LOCK_BTN_Y = -78;
     private static final float REACH_MAX = 10.0F;
@@ -292,6 +293,7 @@ public class ModeWheelScreen extends Screen {
         guiGraphics.drawString(this.font,
                 Component.translatable("wheel.iknow.attack_reach").append(String.format("%.1f", attackReachValue)),
                 CONTROL_X, cy + vy(ATTACK_REACH_LABEL_Y), 0xFFDDDDDD);
+        drawBlastChainButton(guiGraphics, cy);
         drawTimeButtons(guiGraphics, cy, mouseX, mouseY);
         drawLockButton(guiGraphics, cy, mouseX, mouseY);
     }
@@ -392,6 +394,15 @@ public class ModeWheelScreen extends Screen {
                 if (stack != null) {
                     sendUpdate(stack);
                 }
+            }
+            playClickSound();
+            return true;
+        }
+        if (isBlastChainButtonAt(mouseX, mouseY)) {
+            ItemStack stack = heldStack();
+            if (stack != null) {
+                IknowToolItem.setBlastChain(stack, !IknowToolItem.blastChainEnabled(stack));
+                sendUpdate(stack);
             }
             playClickSound();
             return true;
@@ -500,8 +511,10 @@ public class ModeWheelScreen extends Screen {
         Player player = Minecraft.getInstance().player;
         boolean noInertia = player != null && FlightHandler.noInertia(player);
         boolean nightVision = player != null && FlightHandler.nightVisionEnabled(player);
+        boolean blastChain = IknowToolItem.blastChainEnabled(stack);
         int flags = (noInertia ? ModeChangePayload.FLAG_NO_INERTIA : 0)
-                | (nightVision ? ModeChangePayload.FLAG_NIGHT_VISION : 0);
+                | (nightVision ? ModeChangePayload.FLAG_NIGHT_VISION : 0)
+                | (blastChain ? ModeChangePayload.FLAG_BLAST_CHAIN : 0);
         PacketDistributor.sendToServer(new ModeChangePayload(
                 IknowToolItem.modes(stack),
                 IknowToolItem.enchantMode(stack),
@@ -580,6 +593,25 @@ public class ModeWheelScreen extends Screen {
         guiGraphics.fill(CONTROL_X, y, CONTROL_X + FLIGHT_BTN_WIDTH, y + FLIGHT_BTN_HEIGHT, on ? 0xE03A9F4F : 0xD03A3A3A);
         guiGraphics.drawCenteredString(this.font,
                 Component.translatable(on ? "wheel.iknow.nightvision_on" : "wheel.iknow.nightvision_off"),
+                CONTROL_X + FLIGHT_BTN_WIDTH / 2, y + 4, 0xFFFFFFFF);
+    }
+
+    // ==================== 爆破连锁开关（左栏） ====================
+
+    private boolean isBlastChainButtonAt(double mouseX, double mouseY) {
+        int cy = this.height / 2;
+        int y = cy + vy(BLAST_BTN_Y);
+        return mouseX >= CONTROL_X && mouseX <= CONTROL_X + FLIGHT_BTN_WIDTH
+                && mouseY >= y && mouseY <= y + FLIGHT_BTN_HEIGHT;
+    }
+
+    private void drawBlastChainButton(GuiGraphics guiGraphics, int cy) {
+        int y = cy + vy(BLAST_BTN_Y);
+        ItemStack stack = heldStack();
+        boolean on = stack != null && IknowToolItem.blastChainEnabled(stack);
+        guiGraphics.fill(CONTROL_X, y, CONTROL_X + FLIGHT_BTN_WIDTH, y + FLIGHT_BTN_HEIGHT, on ? 0xE0D9772B : 0xD03A3A3A);
+        guiGraphics.drawCenteredString(this.font,
+                Component.translatable(on ? "wheel.iknow.blast_on" : "wheel.iknow.blast_off"),
                 CONTROL_X + FLIGHT_BTN_WIDTH / 2, y + 4, 0xFFFFFFFF);
     }
 

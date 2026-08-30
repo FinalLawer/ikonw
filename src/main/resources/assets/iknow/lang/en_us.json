@@ -31,6 +31,8 @@
   "wheel.iknow.inertia_off": "Flight Inertia: OFF",
   "wheel.iknow.nightvision_on": "Night Vision: ON",
   "wheel.iknow.nightvision_off": "Night Vision: OFF",
+  "wheel.iknow.blast_on": "Blast Chain: ON",
+  "wheel.iknow.blast_off": "Blast Chain: OFF",
   "wheel.iknow.none": "None",
   "toolmode.iknow.axe": "Axe",
   "toolmode.iknow.pickaxe": "Pickaxe",
@@ -42,6 +44,7 @@
   "enchantmode.iknow.off": "Off",
   "tooltip.iknow.tool_modes": "Tool modes: ",
   "tooltip.iknow.enchant_mode": "Enchant mode: ",
+  "tooltip.iknow.blast_on": "Blast Chain: ON (mining an ore also mines all ores within 100 blocks)",
   "tooltip.iknow.desc1": "Combines axe, pickaxe, hoe, shears and shovel",
   "tooltip.iknow.desc2": "Hold R to open the mode wheel",
   "tooltip.iknow.desc3": "Grants creative flight while in your inventory",
@@ -90,5 +93,6 @@
   "wheel.iknow.time_dusk": "Dusk",
   "wheel.iknow.time_night": "Night",
   "wheel.iknow.time_flowing": "Time flowing",
-  "wheel.iknow.time_locked": "Time frozen"
+  "wheel.iknow.time_locked": "Time frozen",
+  "block.iknow.author_doll": "Author Doll"
 }

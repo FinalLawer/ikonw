@@ -19,6 +19,7 @@ public record ModeChangePayload(int toolMask, int enchantMode, int miningSpeed, 
 
     public static final int FLAG_NO_INERTIA = 0b01;
     public static final int FLAG_NIGHT_VISION = 0b10;
+    public static final int FLAG_BLAST_CHAIN = 0b100;
 
     public static final Type<ModeChangePayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(IknowMod.MODID, "mode_change"));

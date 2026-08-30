@@ -1,10 +1,16 @@
 package com.example.iknow;
 
 import appeng.api.implementations.blockentities.IWirelessAccessPoint;
+import appeng.api.parts.IPartHost;
+import appeng.menu.MenuOpener;
+import appeng.menu.locator.MenuLocators;
+import appeng.parts.AEBasePart;
+import appeng.parts.reporting.AbstractTerminalPart;
 import com.example.iknow.item.IknowToolItem;
 import com.example.iknow.network.AeBindPayload;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -64,6 +70,43 @@ public final class PickupEvents {
         event.setUseItem(TriState.FALSE);
         event.setCanceled(true);
         event.setCancellationResult(InteractionResult.CONSUME);
+    }
+
+    // ============ AE 终端（terminal part）：右键打开界面、不旋转；shift+右键拆解 ============
+    // 工具仍保留扳手能力（可旋转其它方块 / 其它 AE 方块），但 AE 各种终端右键时不再自旋，
+    // 而是打开终端界面。蹲下+右键仍走 AE 扳手拆解（WrenchHook + c:tools/wrench 标签）。
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onRightClickTerminal(PlayerInteractEvent.RightClickBlock event) {
+        if (!Ae2Integration.isAe2Loaded()) {
+            return;
+        }
+        ItemStack tool = event.getItemStack();
+        if (!(tool.getItem() instanceof IknowToolItem)) {
+            return;
+        }
+        // 蹲下+右键：保留 AE 扳手拆解，不拦截
+        if (event.getEntity() != null && event.getEntity().isShiftKeyDown()) {
+            return;
+        }
+        BlockEntity be = event.getLevel().getBlockEntity(event.getPos());
+        if (!(be instanceof IPartHost host)) {
+            return;
+        }
+        // 遍历 6 个朝向，找到 AE 终端 part
+        for (Direction side : Direction.values()) {
+            if (host.getPart(side) instanceof AbstractTerminalPart terminal) {
+                // 取消该次右键（阻止 onUseWithoutItem 里的扳手自旋）
+                event.setCanceled(true);
+                event.setCancellationResult(event.getLevel().isClientSide()
+                        ? InteractionResult.SUCCESS : InteractionResult.CONSUME);
+                // 在服务端打开终端界面
+                if (!event.getLevel().isClientSide() && event.getEntity() instanceof ServerPlayer serverPlayer) {
+                    MenuOpener.open(terminal.getMenuType(serverPlayer), serverPlayer,
+                            MenuLocators.forPart((AEBasePart) terminal));
+                }
+                return;
+            }
+        }
     }
 
     // ============ 破坏物品直入物品栏 / AE ============
