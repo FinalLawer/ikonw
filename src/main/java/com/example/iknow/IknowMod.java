@@ -86,9 +86,9 @@ public class IknowMod {
     public static final DeferredItem<BlockItem> INFINITE_WATER_ITEM = ITEMS.registerSimpleBlockItem("infinite_water", INFINITE_WATER);
 
     // 作者玩偶：放置后显示一尊完整的人形手办（作者皮肤）
-    public static final DeferredBlock<AuthorDollBlock> AUTHOR_DOLL = BLOCKS.register("author_doll",
+    public static final DeferredBlock<AuthorDollBlock> AUTHOR_DOLL = BLOCKS.register("rikkawooer_doll",
             () -> new AuthorDollBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).strength(0.5F)));
-    public static final DeferredItem<BlockItem> AUTHOR_DOLL_ITEM = ITEMS.registerSimpleBlockItem("author_doll", AUTHOR_DOLL);
+    public static final DeferredItem<BlockItem> AUTHOR_DOLL_ITEM = ITEMS.registerSimpleBlockItem("rikkawooer_doll", AUTHOR_DOLL);
 
     // Creates a new food item with the id "iknow:example_id", nutrition 1 and saturation 2
         public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder()

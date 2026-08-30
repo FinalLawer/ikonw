@@ -3,8 +3,8 @@
 	"credit": "Made with Blockbench",
 	"render_type": "cutout",
 	"textures": {
-		"0": "iknow:block/author_doll",
-		"particle": "iknow:block/author_doll"
+		"0": "iknow:block/rikkawooer_doll",
+		"particle": "iknow:block/rikkawooer_doll"
 	},
 	"elements": [
 		{
@@ -541,7 +541,7 @@
 			"name": "Left Leg Layer",
 			"from": [
 				7.9,
-				-0.1,
+				0,
 				3.9
 			],
 			"to": [
@@ -701,7 +701,7 @@
 			"name": "Right Leg Layer",
 			"from": [
 				5.9,
-				-0.1,
+				0,
 				3.9
 			],
 			"to": [
@@ -850,7 +850,7 @@
 			"name": "Body Layer",
 			"from": [
 				5.5,
-				-0.1,
+				0,
 				9.5
 			],
 			"to": [

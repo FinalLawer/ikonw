@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "iknow:block/rikkawooer_doll" },
+    "facing=east": { "model": "iknow:block/rikkawooer_doll", "y": 90 },
+    "facing=south": { "model": "iknow:block/rikkawooer_doll", "y": 180 },
+    "facing=west": { "model": "iknow:block/rikkawooer_doll", "y": 270 }
+  }
+}
