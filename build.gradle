@@ -178,6 +178,13 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
+// 把 LICENSE（MIT）打入 jar，方便分发与合规
+jar {
+    from('LICENSE') {
+        rename { 'LICENSE' }
+    }
+}
+
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
 idea {
     module {
